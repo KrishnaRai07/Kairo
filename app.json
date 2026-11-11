@@ -1,22 +1,29 @@
 {
   "expo": {
-    "name": "SeeYourSelf",
-    "slug": "SeeYourSelf",
+    "name": "Kairo",
+    "slug": "kairo",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
-    "userInterfaceStyle": "light",
+    "userInterfaceStyle": "automatic",
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.kairo.app"
     },
     "android": {
+      "package": "com.kairo.app",
       "adaptiveIcon": {
-        "backgroundColor": "#E6F4FE",
+        "backgroundColor": "#0A0E17",
         "foregroundImage": "./assets/android-icon-foreground.png",
         "backgroundImage": "./assets/android-icon-background.png",
         "monochromeImage": "./assets/android-icon-monochrome.png"
       },
-      "predictiveBackGestureEnabled": false
+      "predictiveBackGestureEnabled": false,
+      "permissions": [
+        "RECEIVE_BOOT_COMPLETED",
+        "SCHEDULE_EXACT_ALARM",
+        "POST_NOTIFICATIONS"
+      ]
     },
     "web": {
       "favicon": "./assets/favicon.png"
@@ -27,9 +34,27 @@
         "expo-notifications",
         {
           "icon": "./assets/icon.png",
-          "color": "#4F46E5"
+          "color": "#38BDF8"
+        }
+      ],
+      [
+        "expo-local-authentication",
+        {
+          "faceIDPermission": "Allow Kairo to use biometric authentication for app lock."
+        }
+      ],
+      [
+        "expo-secure-store",
+        {
+          "configureAndroidBackup": true,
+          "faceIDPermission": "Allow Kairo to access secure authentication keys."
         }
       ]
-    ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "8ae87bcb-7e09-4a09-b2a7-c6354ce0edc4"
+      }
+    }
   }
 }

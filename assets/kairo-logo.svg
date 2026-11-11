@@ -1,0 +1,33 @@
+<svg width="512" height="512" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="neonGradient" x1="0" y1="0" x2="100" y2="100" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#38BDF8" />
+      <stop offset="60%" stop-color="#818CF8" />
+      <stop offset="100%" stop-color="#C084FC" />
+    </linearGradient>
+    <linearGradient id="ringGradient" x1="0" y1="100" x2="100" y2="0" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#38BDF8" stop-opacity="0.35" />
+      <stop offset="100%" stop-color="#C084FC" stop-opacity="0.85" />
+    </linearGradient>
+  </defs>
+
+  <!-- Dark Obsidian Squircle Canvas -->
+  <rect width="100" height="100" rx="24" fill="#0A0E17" />
+  <rect width="98" height="98" x="1" y="1" rx="23" stroke="rgba(255,255,255,0.08)" stroke-width="2" />
+
+  <!-- Outer Momentum Arc Ring (Intentional Flow Orbit) -->
+  <circle cx="50" cy="50" r="34" stroke="url(#ringGradient)" stroke-width="4.5" stroke-linecap="round" stroke-dasharray="160 55" />
+  
+  <!-- Geometric 'K' Vertical Pillar -->
+  <rect x="32" y="27" width="7" height="46" rx="3.5" fill="url(#neonGradient)" />
+
+  <!-- Diagonal Rising Arm -->
+  <path d="M43 50 L63 30" stroke="url(#neonGradient)" stroke-width="7" stroke-linecap="round" />
+
+  <!-- Diagonal Grounded Arm -->
+  <path d="M43 50 L65 72" stroke="url(#neonGradient)" stroke-width="7" stroke-linecap="round" />
+
+  <!-- Central Focus Beacon (Active Spotlight) -->
+  <circle cx="43" cy="50" r="4" fill="#FFFFFF" />
+</svg>
+

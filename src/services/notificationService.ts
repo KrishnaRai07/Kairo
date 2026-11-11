@@ -1,5 +1,5 @@
 import * as Notifications from 'expo-notifications';
-import { Task, TaskReminder } from '../types/task';
+import { Task, TaskReminder, UserSettings } from '../types/task';
 import { generateUUID } from './statusEngine';
 import { planTaskReminders, PlannedReminder } from './notificationPlanner';
 
@@ -41,9 +41,10 @@ export async function requestNotificationPermissions(): Promise<boolean> {
  */
 export async function scheduleRemindersForTask(
   task: Task,
-  referenceTime: Date = new Date()
+  referenceTime: Date = new Date(),
+  settings?: UserSettings
 ): Promise<TaskReminder[]> {
-  const planned = planTaskReminders(task, referenceTime);
+  const planned = planTaskReminders(task, referenceTime, settings);
   const createdReminders: TaskReminder[] = [];
 
   for (const item of planned) {
@@ -53,7 +54,12 @@ export async function scheduleRemindersForTask(
         content: {
           title: item.title,
           body: item.body,
-          data: { taskId: task.id, triggerType: item.triggerType },
+          data: {
+            taskId: task.id,
+            triggerType: item.triggerType,
+            taskTitle: task.title,
+            startTime: task.startTime,
+          },
           sound: true,
         },
         trigger: {
@@ -84,7 +90,7 @@ export async function cancelNotificationIds(notificationIds: string[]): Promise<
   for (const notifId of notificationIds) {
     try {
       await Notifications.cancelScheduledNotificationAsync(notifId);
-    } catch (error) {
+    } catch {
       // Notification might already have fired or been purged by the OS
     }
   }

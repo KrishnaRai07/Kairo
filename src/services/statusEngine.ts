@@ -1,4 +1,4 @@
-import { Task, TaskHistoryEvent, TaskStatus, DayProgressSummary, HistoryEventType } from '../types/task';
+import { Task, TaskHistoryEvent, TaskStatus, DayProgressSummary, HistoryEventType, TaskPriority } from '../types/task';
 
 export interface TaskEvaluationResult {
   updatedTask: Task;
@@ -104,6 +104,7 @@ export function completeTask(
     ...task,
     status: 'completed',
     completedAt: completionIso,
+    updatedAt: completionIso,
   };
 
   const historyEvent: TaskHistoryEvent = {
@@ -133,6 +134,7 @@ export function skipTask(
   const updatedTask: Task = {
     ...task,
     status: 'skipped',
+    updatedAt: skipIso,
   };
 
   const historyEvent: TaskHistoryEvent = {
@@ -178,6 +180,7 @@ export function rescheduleTask(
     endTime: newEndTime,
     status: newStatus,
     completedAt: null, // Reset if was previously completed
+    updatedAt: rescheduleIso,
   };
 
   const historyEvent: TaskHistoryEvent = {
@@ -190,6 +193,67 @@ export function rescheduleTask(
     newStartTime,
     newEndTime,
     note: note || 'Rescheduled to new time window',
+  };
+
+  return { updatedTask, historyEvent };
+}
+
+/**
+ * Edits a task's details. If time boundaries changed, re-evaluates active status.
+ * Terminal states (completed/skipped) remain immutable.
+ */
+export function editTask(
+  task: Task,
+  updates: {
+    title: string;
+    description?: string;
+    priority: TaskPriority;
+    startTime: string;
+    endTime: string;
+  },
+  editTime: Date = new Date(),
+  note?: string
+): { updatedTask: Task; historyEvent: TaskHistoryEvent } {
+  const editIso = editTime.toISOString();
+  const timeChanged = task.startTime !== updates.startTime || task.endTime !== updates.endTime;
+
+  let newStatus = task.status;
+  // If not terminal and time changed, re-evaluate status against current time
+  if (task.status !== 'completed' && task.status !== 'skipped' && timeChanged) {
+    const refMs = editTime.getTime();
+    const newStartMs = new Date(updates.startTime).getTime();
+    const newEndMs = new Date(updates.endTime).getTime();
+
+    if (refMs < newStartMs) {
+      newStatus = 'upcoming';
+    } else if (refMs >= newStartMs && refMs < newEndMs) {
+      newStatus = 'in_progress';
+    } else {
+      newStatus = 'missed';
+    }
+  }
+
+  const updatedTask: Task = {
+    ...task,
+    title: updates.title.trim(),
+    description: updates.description?.trim() || undefined,
+    priority: updates.priority,
+    startTime: updates.startTime,
+    endTime: updates.endTime,
+    status: newStatus,
+    updatedAt: editIso,
+  };
+
+  const historyEvent: TaskHistoryEvent = {
+    id: generateUUID(),
+    taskId: task.id,
+    eventType: 'edited',
+    timestamp: editIso,
+    oldStartTime: task.startTime,
+    oldEndTime: task.endTime,
+    newStartTime: updates.startTime,
+    newEndTime: updates.endTime,
+    note: note || (timeChanged ? 'Task details and schedule updated' : 'Task details updated'),
   };
 
   return { updatedTask, historyEvent };

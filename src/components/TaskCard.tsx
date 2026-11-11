@@ -1,7 +1,9 @@
-import React from 'react';
-import { StyleSheet, Text, View, TouchableOpacity } from 'react-native';
+import React, { useState, useMemo } from 'react';
+import { StyleSheet, Text, View, TouchableOpacity, Platform } from 'react-native';
 import { Task, TaskStatus } from '../types/task';
-import { formatTime, formatDuration } from '../utils/dateUtils';
+import { formatTime, formatDuration, formatDate } from '../utils/dateUtils';
+import { useTheme } from '../theme/ThemeContext';
+import { Theme } from '../theme/theme';
 
 interface Props {
   task: Task;
@@ -9,7 +11,10 @@ interface Props {
   onSkip: (task: Task) => void;
   onReschedule: (task: Task) => void;
   onDelete: (taskId: string) => void;
+  onRequestDelete?: (task: Task) => void;
+  onEdit?: (task: Task) => void;
   onViewHistory: (task: Task) => void;
+  timeFormat?: '12h' | '24h';
 }
 
 export const TaskCard: React.FC<Props> = ({
@@ -18,14 +23,29 @@ export const TaskCard: React.FC<Props> = ({
   onSkip,
   onReschedule,
   onDelete,
+  onRequestDelete,
+  onEdit,
   onViewHistory,
+  timeFormat = '12h',
 }) => {
+  const { theme, isDark } = useTheme();
+  const styles = useMemo(() => getStyles(theme, isDark), [theme, isDark]);
+  const [isExpanded, setIsExpanded] = useState(false);
+
   const isTerminal = task.status === 'completed' || task.status === 'skipped';
   const isMissed = task.status === 'missed';
   const isInProgress = task.status === 'in_progress';
 
   const durationStr = formatDuration(task.startTime, task.endTime);
-  const timeRange = `${formatTime(task.startTime)} - ${formatTime(task.endTime)} (${durationStr})`;
+  const timeBoundary = `${formatTime(task.startTime, timeFormat)} – ${formatTime(task.endTime, timeFormat)} · ${durationStr}`;
+
+  const handleDeletePress = () => {
+    if (onRequestDelete) {
+      onRequestDelete(task);
+    } else {
+      onDelete(task.id);
+    }
+  };
 
   const renderBadge = (status: TaskStatus) => {
     switch (status) {
@@ -33,7 +53,7 @@ export const TaskCard: React.FC<Props> = ({
         return (
           <View style={[styles.badge, styles.badgeActive]}>
             <View style={styles.pulseDot} />
-            <Text style={[styles.badgeText, styles.badgeActiveText]}>In Progress</Text>
+            <Text style={[styles.badgeText, styles.badgeActiveText]}>Active</Text>
           </View>
         );
       case 'upcoming':
@@ -45,7 +65,7 @@ export const TaskCard: React.FC<Props> = ({
       case 'missed':
         return (
           <View style={[styles.badge, styles.badgeMissed]}>
-            <Text style={[styles.badgeText, styles.badgeMissedText]}>Missed</Text>
+            <Text style={[styles.badgeText, styles.badgeMissedText]}>Overdue</Text>
           </View>
         );
       case 'completed':
@@ -63,101 +83,143 @@ export const TaskCard: React.FC<Props> = ({
     }
   };
 
+  const getPriorityDotColor = () => {
+    if (task.priority === 'high') return theme.colors.priority.high;
+    if (task.priority === 'low') return theme.colors.priority.low;
+    return theme.colors.priority.medium;
+  };
+
   return (
     <View style={[styles.card, isInProgress && styles.cardActive, isMissed && styles.cardMissed]}>
-      {/* Top Header: Time range, Priority, and Status Badge */}
+      {/* Clean Top Header: Priority dot, Monospaced Time Boundary, Optional Goal Day, and Status Badge */}
       <View style={styles.cardHeader}>
-        <View style={styles.timeContainer}>
-          <Text style={styles.timeText}>{timeRange}</Text>
+        <View style={styles.timeCluster}>
+          <View style={[styles.priorityDot, { backgroundColor: getPriorityDotColor() }]} />
+          <Text style={styles.monospacedTimeText}>{timeBoundary}</Text>
+          {task.goalId && (
+            <View style={styles.goalBadge}>
+              <Text style={styles.goalBadgeText}>Day {task.goalDayNumber}</Text>
+            </View>
+          )}
         </View>
-        <View style={styles.headerRight}>
-          {renderBadge(task.status)}
-        </View>
+        <View style={styles.headerRight}>{renderBadge(task.status)}</View>
       </View>
 
-      {/* Title & Description */}
+      {/* Title & Optional Compact Description */}
       <View style={styles.contentSection}>
         <Text style={[styles.title, isTerminal && styles.titleMuted]}>{task.title}</Text>
         {task.description ? (
-          <Text style={styles.description}>{task.description}</Text>
+          <Text style={styles.description} numberOfLines={isExpanded ? undefined : 1}>
+            {task.description}
+          </Text>
         ) : null}
       </View>
 
-      {/* Missed Task Messaging */}
+      {/* Subtle Single-Line Status Meta */}
       {isMissed && (
-        <View style={styles.missedNotice}>
-          <Text style={styles.missedNoticeText}>
-            Scheduled block passed. Mark it done now to log late completion, or reschedule for later.
-          </Text>
-        </View>
+        <Text style={styles.missedHintText}>
+          🤝 Missed schedule · Done Late or Reschedule anytime
+        </Text>
       )}
-
-      {/* Completed Info */}
       {task.status === 'completed' && task.completedAt && (
-        <View style={styles.completedNotice}>
-          <Text style={styles.completedNoticeText}>
-            Completed at {formatTime(task.completedAt)}
-          </Text>
+        <Text style={styles.completedHintText}>
+          ✓ Completed at {formatTime(task.completedAt, timeFormat)}
+        </Text>
+      )}
+
+      {/* Expanded Details Section */}
+      {isExpanded && (
+        <View style={styles.detailsExpansion}>
+          <Text style={styles.detailRowText}>📅 {formatDate(new Date(task.startTime))} · Priority: {task.priority.toUpperCase()}</Text>
+          {task.updatedAt && (
+            <Text style={styles.detailRowText}>✏️ Updated {formatTime(task.updatedAt, timeFormat)}</Text>
+          )}
+          {task.goalId && (
+            <Text style={styles.detailRowText}>🎯 Goal Milestone: Day {task.goalDayNumber}</Text>
+          )}
         </View>
       )}
 
-      {/* Action Buttons */}
-      <View style={styles.actionRow}>
+      {/* Primary Action Row */}
+      <View style={styles.primaryActionRow}>
         {!isTerminal ? (
           <>
             <TouchableOpacity
-              style={[styles.actionBtn, styles.completeBtn]}
+              style={[styles.primaryActionBtn, styles.completeBtn]}
               onPress={() => onComplete(task)}
               activeOpacity={0.8}
             >
-              <Text style={styles.completeBtnText}>
-                {isMissed ? 'Complete Late' : 'Complete'}
+              <Text style={styles.completeBtnText} numberOfLines={1}>
+                {isMissed ? '✓ Done Late' : '✓ Done'}
               </Text>
             </TouchableOpacity>
 
             <TouchableOpacity
-              style={[styles.actionBtn, styles.rescheduleBtn]}
+              style={[styles.primaryActionBtn, styles.rescheduleBtn]}
               onPress={() => onReschedule(task)}
               activeOpacity={0.8}
             >
-              <Text style={styles.rescheduleBtnText}>Reschedule</Text>
+              <Text style={styles.rescheduleBtnText} numberOfLines={1}>
+                ↻ Reschedule
+              </Text>
             </TouchableOpacity>
 
             <TouchableOpacity
-              style={[styles.actionBtn, styles.skipBtn]}
+              style={[styles.primaryActionBtn, styles.skipBtn]}
               onPress={() => onSkip(task)}
               activeOpacity={0.8}
             >
-              <Text style={styles.skipBtnText}>Skip</Text>
+              <Text style={styles.skipBtnText} numberOfLines={1}>
+                ✕ Skip
+              </Text>
             </TouchableOpacity>
           </>
         ) : (
-          <View style={styles.terminalContainer}>
-            <TouchableOpacity
-              style={[styles.actionBtn, styles.rescheduleBtn]}
-              onPress={() => onReschedule(task)}
-              activeOpacity={0.8}
-            >
-              <Text style={styles.rescheduleBtnText}>Re-run / Reschedule</Text>
-            </TouchableOpacity>
-          </View>
-        )}
-
-        <View style={styles.iconActions}>
           <TouchableOpacity
-            style={styles.historyBtn}
+            style={[styles.primaryActionBtn, styles.rescheduleBtn, { flex: 1 }]}
+            onPress={() => onReschedule(task)}
+            activeOpacity={0.8}
+          >
+            <Text style={styles.rescheduleBtnText} numberOfLines={1}>
+              ↻ Re-run / Reschedule
+            </Text>
+          </TouchableOpacity>
+        )}
+      </View>
+
+      {/* Clean Ghost Utility Footer */}
+      <View style={styles.utilityFooter}>
+        <TouchableOpacity
+          onPress={() => setIsExpanded(!isExpanded)}
+          hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+        >
+          <Text style={styles.utilityText}>
+            {isExpanded ? '▴ Less' : '▾ More'}
+          </Text>
+        </TouchableOpacity>
+
+        <View style={styles.utilityActionsRight}>
+          {onEdit && !isTerminal && (
+            <TouchableOpacity
+              onPress={() => onEdit(task)}
+              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+            >
+              <Text style={styles.utilityText}>✏️ Edit</Text>
+            </TouchableOpacity>
+          )}
+
+          <TouchableOpacity
             onPress={() => onViewHistory(task)}
             hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
           >
-            <Text style={styles.historyBtnText}>📜 History</Text>
+            <Text style={styles.utilityText}>📜 Log</Text>
           </TouchableOpacity>
 
           <TouchableOpacity
-            style={styles.deleteBtn}
-            onPress={() => onDelete(task.id)}
+            onPress={handleDeletePress}
             hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
           >
-            <Text style={styles.deleteBtnText}>✕</Text>
+            <Text style={styles.utilityDeleteText}>🗑️</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -165,200 +227,222 @@ export const TaskCard: React.FC<Props> = ({
   );
 };
 
-const styles = StyleSheet.create({
-  card: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 14,
-    padding: 16,
-    marginHorizontal: 16,
-    marginVertical: 6,
-    shadowColor: '#0F172A',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 3,
-    elevation: 2,
-    borderWidth: 1,
-    borderColor: '#E2E8F0',
-  },
-  cardActive: {
-    borderColor: '#3B82F6',
-    borderWidth: 1.5,
-    backgroundColor: '#FAFCFF',
-  },
-  cardMissed: {
-    borderColor: '#FDE68A',
-    backgroundColor: '#FFFEFA',
-  },
-  cardHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 8,
-  },
-  timeContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  timeText: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: '#64748B',
-  },
-  headerRight: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  contentSection: {
-    marginBottom: 10,
-  },
-  title: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: '#0F172A',
-    lineHeight: 22,
-  },
-  titleMuted: {
-    color: '#64748B',
-  },
-  description: {
-    fontSize: 13,
-    color: '#64748B',
-    marginTop: 4,
-    lineHeight: 18,
-  },
-  badge: {
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: 8,
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  badgeText: {
-    fontSize: 11,
-    fontWeight: '700',
-  },
-  badgeUpcoming: {
-    backgroundColor: '#EEF2FF',
-  },
-  badgeUpcomingText: {
-    color: '#4F46E5',
-  },
-  badgeActive: {
-    backgroundColor: '#EFF6FF',
-  },
-  badgeActiveText: {
-    color: '#2563EB',
-  },
-  pulseDot: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
-    backgroundColor: '#2563EB',
-    marginRight: 5,
-  },
-  badgeMissed: {
-    backgroundColor: '#FEF3C7',
-  },
-  badgeMissedText: {
-    color: '#D97706',
-  },
-  badgeCompleted: {
-    backgroundColor: '#D1FAE5',
-  },
-  badgeCompletedText: {
-    color: '#059669',
-  },
-  badgeSkipped: {
-    backgroundColor: '#F1F5F9',
-  },
-  badgeSkippedText: {
-    color: '#64748B',
-  },
-  missedNotice: {
-    backgroundColor: '#FFFBEB',
-    padding: 10,
-    borderRadius: 8,
-    marginBottom: 10,
-  },
-  missedNoticeText: {
-    fontSize: 12,
-    color: '#92400E',
-    lineHeight: 16,
-  },
-  completedNotice: {
-    marginBottom: 10,
-  },
-  completedNoticeText: {
-    fontSize: 12,
-    color: '#059669',
-    fontWeight: '500',
-  },
-  actionRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingTop: 8,
-    borderTopWidth: 1,
-    borderTopColor: '#F8FAFC',
-  },
-  actionBtn: {
-    paddingVertical: 7,
-    paddingHorizontal: 12,
-    borderRadius: 8,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: 6,
-  },
-  completeBtn: {
-    backgroundColor: '#10B981',
-  },
-  completeBtnText: {
-    color: '#FFFFFF',
-    fontSize: 12,
-    fontWeight: '700',
-  },
-  rescheduleBtn: {
-    backgroundColor: '#EEF2FF',
-    borderWidth: 1,
-    borderColor: '#C7D2FE',
-  },
-  rescheduleBtnText: {
-    color: '#4F46E5',
-    fontSize: 12,
-    fontWeight: '600',
-  },
-  skipBtn: {
-    backgroundColor: '#F1F5F9',
-  },
-  skipBtnText: {
-    color: '#64748B',
-    fontSize: 12,
-    fontWeight: '600',
-  },
-  terminalContainer: {
-    flexDirection: 'row',
-  },
-  iconActions: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginLeft: 'auto',
-  },
-  historyBtn: {
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-  },
-  historyBtnText: {
-    fontSize: 11,
-    color: '#64748B',
-  },
-  deleteBtn: {
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    marginLeft: 4,
-  },
-  deleteBtnText: {
-    fontSize: 14,
-    color: '#94A3B8',
-    fontWeight: '600',
-  },
-});
+const getStyles = (theme: Theme, isDark: boolean) =>
+  StyleSheet.create({
+    card: {
+      backgroundColor: theme.colors.surface,
+      borderRadius: theme.radius.lg,
+      padding: 13,
+      marginHorizontal: theme.spacing.base,
+      marginBottom: 10,
+      borderWidth: 1,
+      borderColor: isDark ? 'rgba(255, 255, 255, 0.08)' : theme.colors.borderSubtle,
+      ...theme.shadows.card,
+    },
+    cardActive: {
+      borderColor: theme.colors.status.inProgressBorder,
+      borderLeftWidth: 3.5,
+      borderLeftColor: theme.colors.status.inProgress,
+      backgroundColor: isDark ? '#161F30' : theme.colors.status.inProgressBg,
+    },
+    cardMissed: {
+      borderColor: theme.colors.status.missedBorder,
+      borderLeftWidth: 3.5,
+      borderLeftColor: theme.colors.status.missed,
+      backgroundColor: isDark ? 'rgba(245, 158, 11, 0.04)' : theme.colors.status.missedBg,
+    },
+    cardHeader: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      marginBottom: 6,
+    },
+    timeCluster: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 6,
+      flex: 1,
+    },
+    priorityDot: {
+      width: 7,
+      height: 7,
+      borderRadius: 3.5,
+    },
+    monospacedTimeText: {
+      fontSize: 11,
+      fontWeight: '600',
+      color: isDark ? '#CBD5E1' : theme.colors.textSecondary,
+      fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace',
+    },
+    goalBadge: {
+      backgroundColor: isDark ? 'rgba(168, 85, 247, 0.2)' : '#F3E8FF',
+      paddingHorizontal: 5,
+      paddingVertical: 1,
+      borderRadius: theme.radius.xs,
+    },
+    goalBadgeText: {
+      fontSize: 9,
+      fontWeight: '700',
+      color: isDark ? '#C084FC' : '#7E22CE',
+    },
+    headerRight: {
+      flexDirection: 'row',
+      alignItems: 'center',
+    },
+    badge: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      paddingHorizontal: 7,
+      paddingVertical: 2,
+      borderRadius: theme.radius.full,
+    },
+    badgeActive: {
+      backgroundColor: 'rgba(56, 189, 248, 0.15)',
+    },
+    badgeUpcoming: {
+      backgroundColor: isDark ? 'rgba(255, 255, 255, 0.07)' : 'rgba(0, 0, 0, 0.05)',
+    },
+    badgeMissed: {
+      backgroundColor: 'rgba(245, 158, 11, 0.15)',
+    },
+    badgeCompleted: {
+      backgroundColor: 'rgba(16, 185, 129, 0.15)',
+    },
+    badgeSkipped: {
+      backgroundColor: isDark ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.04)',
+    },
+    pulseDot: {
+      width: 5,
+      height: 5,
+      borderRadius: 2.5,
+      backgroundColor: '#38BDF8',
+      marginRight: 4,
+    },
+    badgeText: {
+      fontSize: 9,
+      fontWeight: '700',
+    },
+    badgeActiveText: {
+      color: '#38BDF8',
+    },
+    badgeUpcomingText: {
+      color: theme.colors.textSecondary,
+    },
+    badgeMissedText: {
+      color: '#F59E0B',
+    },
+    badgeCompletedText: {
+      color: '#10B981',
+    },
+    badgeSkippedText: {
+      color: theme.colors.textMuted,
+    },
+    contentSection: {
+      marginBottom: 8,
+    },
+    title: {
+      fontSize: 15,
+      fontWeight: '700',
+      color: theme.colors.textPrimary,
+      lineHeight: 20,
+    },
+    titleMuted: {
+      color: theme.colors.textMuted,
+      textDecorationLine: 'line-through',
+    },
+    description: {
+      fontSize: 12,
+      color: theme.colors.textSecondary,
+      marginTop: 2,
+      lineHeight: 16,
+    },
+    missedHintText: {
+      fontSize: 11,
+      color: '#F59E0B',
+      marginBottom: 8,
+      fontWeight: '500',
+    },
+    completedHintText: {
+      fontSize: 11,
+      color: '#10B981',
+      marginBottom: 8,
+      fontWeight: '500',
+    },
+    detailsExpansion: {
+      backgroundColor: theme.colors.surfaceSecondary,
+      borderRadius: theme.radius.sm,
+      padding: 8,
+      marginBottom: 8,
+      gap: 3,
+    },
+    detailRowText: {
+      fontSize: 11,
+      color: theme.colors.textSecondary,
+      fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace',
+    },
+    primaryActionRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 8,
+    },
+    primaryActionBtn: {
+      paddingVertical: 8,
+      paddingHorizontal: 8,
+      borderRadius: theme.radius.md,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    completeBtn: {
+      backgroundColor: '#10B981',
+      flex: 1.3,
+    },
+    completeBtnText: {
+      fontSize: 12,
+      fontWeight: '700',
+      color: '#FFFFFF',
+    },
+    rescheduleBtn: {
+      backgroundColor: theme.colors.surfaceSecondary,
+      borderWidth: 1,
+      borderColor: theme.colors.borderSubtle,
+      flex: 1.3,
+    },
+    rescheduleBtnText: {
+      fontSize: 12,
+      fontWeight: '600',
+      color: theme.colors.textPrimary,
+    },
+    skipBtn: {
+      backgroundColor: theme.colors.surfaceSecondary,
+      borderWidth: 1,
+      borderColor: theme.colors.borderSubtle,
+      flex: 0.9,
+    },
+    skipBtnText: {
+      fontSize: 12,
+      fontWeight: '600',
+      color: theme.colors.textSecondary,
+    },
+    utilityFooter: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      marginTop: 8,
+      paddingTop: 7,
+      borderTopWidth: 1,
+      borderTopColor: isDark ? 'rgba(255, 255, 255, 0.05)' : theme.colors.borderSubtle,
+    },
+    utilityActionsRight: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 14,
+    },
+    utilityText: {
+      fontSize: 11,
+      color: theme.colors.textMuted,
+      fontWeight: '600',
+    },
+    utilityDeleteText: {
+      fontSize: 11,
+    },
+  });

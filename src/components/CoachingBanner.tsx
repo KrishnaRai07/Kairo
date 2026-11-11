@@ -1,114 +1,82 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { DayProgressSummary } from '../types/task';
+import { useTheme } from '../theme/ThemeContext';
+import { Theme } from '../theme/theme';
 
 interface Props {
   summary: DayProgressSummary;
 }
 
+/**
+ * Contextual Coaching Banner:
+ * Only renders when there is an actionable state (all tasks finished, or overdue tasks needing guilt-free reset)
+ * to avoid crowding the daily flow with persistent boilerplate text.
+ */
 export const CoachingBanner: React.FC<Props> = ({ summary }) => {
-  let title = 'Intentional Focus';
-  let message = 'Plan your day with balanced, manageable milestones.';
-  let bgStyle = styles.neutralBg;
-  let textStyle = styles.neutralText;
-  let icon = '🌱';
+  const { theme } = useTheme();
+  const styles = useMemo(() => getStyles(theme), [theme]);
 
-  if (summary.total === 0) {
-    title = 'Clean Slate';
-    message = 'No tasks scheduled yet. Set one or two realistic intentions for your day.';
-    icon = '✨';
-  } else if (summary.completed === summary.total && summary.total > 0) {
-    title = 'All Done!';
-    message = 'Fantastic job showing up for yourself. Take time to relax and recharge.';
-    bgStyle = styles.successBg;
-    textStyle = styles.successText;
-    icon = '🎉';
-  } else if (summary.missed > 0) {
-    title = 'No Guilt, Just Reset';
-    message = `${summary.missed} task${summary.missed > 1 ? 's' : ''} passed scheduled time. Life happens—feel free to complete late or reschedule.`;
-    bgStyle = styles.warningBg;
-    textStyle = styles.warningText;
-    icon = '🤝';
-  } else if (summary.inProgress > 0) {
-    title = 'In Motion';
-    message = 'You have an active block right now. Give yourself permission to single-task.';
-    bgStyle = styles.activeBg;
-    textStyle = styles.activeText;
-    icon = '⚡';
-  } else if (summary.completed > 0) {
-    title = 'Steady Momentum';
-    message = 'Every completed step builds quiet confidence. Keep going at your own pace.';
-    bgStyle = styles.successBg;
-    textStyle = styles.successText;
-    icon = '👏';
+  if (summary.completed === summary.total && summary.total > 0) {
+    return (
+      <View style={[styles.pillBanner, styles.successBg]}>
+        <Text style={styles.icon}>🎉</Text>
+        <Text style={[styles.message, styles.successText]}>
+          All {summary.total} planned tasks complete today. Well done!
+        </Text>
+      </View>
+    );
   }
 
-  return (
-    <View style={[styles.container, bgStyle]}>
-      <Text style={styles.icon}>{icon}</Text>
-      <View style={styles.textContainer}>
-        <Text style={[styles.title, textStyle]}>{title}</Text>
-        <Text style={[styles.message, textStyle]}>{message}</Text>
+  if (summary.missed > 0) {
+    return (
+      <View style={[styles.pillBanner, styles.warningBg]}>
+        <Text style={styles.icon}>🤝</Text>
+        <Text style={[styles.message, styles.warningText]}>
+          {summary.missed} task{summary.missed > 1 ? 's' : ''} overdue — tap Done Late or Reschedule without guilt.
+        </Text>
       </View>
-    </View>
-  );
+    );
+  }
+
+  return null;
 };
 
-const styles = StyleSheet.create({
-  container: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginHorizontal: 16,
-    marginVertical: 12,
-    padding: 14,
-    borderRadius: 12,
-  },
-  icon: {
-    fontSize: 22,
-    marginRight: 12,
-  },
-  textContainer: {
-    flex: 1,
-  },
-  title: {
-    fontSize: 14,
-    fontWeight: '700',
-    marginBottom: 2,
-  },
-  message: {
-    fontSize: 12,
-    lineHeight: 17,
-  },
-  neutralBg: {
-    backgroundColor: '#F8FAFC',
-    borderColor: '#E2E8F0',
-    borderWidth: 1,
-  },
-  neutralText: {
-    color: '#334155',
-  },
-  activeBg: {
-    backgroundColor: '#EFF6FF',
-    borderColor: '#BFDBFE',
-    borderWidth: 1,
-  },
-  activeText: {
-    color: '#1E40AF',
-  },
-  warningBg: {
-    backgroundColor: '#FFFBEB',
-    borderColor: '#FDE68A',
-    borderWidth: 1,
-  },
-  warningText: {
-    color: '#92400E',
-  },
-  successBg: {
-    backgroundColor: '#ECFDF5',
-    borderColor: '#A7F3D0',
-    borderWidth: 1,
-  },
-  successText: {
-    color: '#065F46',
-  },
-});
+const getStyles = (theme: Theme) =>
+  StyleSheet.create({
+    pillBanner: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      marginHorizontal: theme.spacing.base,
+      marginTop: 10,
+      marginBottom: 4,
+      paddingVertical: 8,
+      paddingHorizontal: 12,
+      borderRadius: theme.radius.md,
+      borderWidth: 1,
+    },
+    icon: {
+      fontSize: 15,
+      marginRight: 8,
+    },
+    message: {
+      flex: 1,
+      fontSize: 11,
+      fontWeight: '600',
+      lineHeight: 16,
+    },
+    warningBg: {
+      backgroundColor: theme.colors.status.missedBg,
+      borderColor: theme.colors.status.missedBorder,
+    },
+    warningText: {
+      color: theme.colors.status.missed,
+    },
+    successBg: {
+      backgroundColor: theme.colors.status.completedBg,
+      borderColor: theme.colors.status.completedBorder,
+    },
+    successText: {
+      color: theme.colors.status.completed,
+    },
+  });

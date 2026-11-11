@@ -1,87 +1,104 @@
-# 🌊 DayFlow (SeeYourSelf)
+# ⚡ Kairo
 
-> **The Intentional Accountability Engine for High-Performers.**  
-> Built with **React Native**, **Expo (SDK 58)**, **TypeScript**, and **local SQLite (`expo-sqlite`)**.
+> **Master your daily flow. Without the guilt.**  
+> Built with **React Native (0.88)**, **Expo (SDK 58)**, **TypeScript**, and **local SQLite (`expo-sqlite`)**.
 
-DayFlow is a local-first, privacy-focused daily scheduling and accountability application. Unlike traditional to-do lists that turn into guilt graveyards or rigid calendar blockers that break under real-world disruptions, DayFlow combines **hard time-boundary accountability** with a **balanced, psychological-safety coaching philosophy**.
+Kairo (derived from the ancient Greek *Kairos* — "meaningful, opportune time") is a local-first, privacy-focused daily scheduling, target goal, and accountability application. Unlike traditional to-do lists that turn into guilt graveyards or rigid calendar blockers that break under real-world disruptions, Kairo combines **hard time-boundary accountability** with **psychological-safety coaching**, **spoken reminders**, and **inbuilt PIN/Password security**.
 
 ---
 
 ## 🌟 Key Features
 
-### 1. 🛡️ 100% Local-First & Zero Cloud Lock-In
-- No user accounts, remote databases, or cloud tracking.
-- Fast, ACID-compliant persistence using modern **`expo-sqlite`** with WAL (Write-Ahead Logging) mode, foreign key enforcement, and indexed queries.
-- Zero server cost per user, delivering instant 0ms offline responsiveness.
+### 1. 🎯 Long-Term Target Goals & Recurring Milestones
+- **Break Big Targets into Daily Stepping Stones**: Set a goal (e.g. *"Master Advanced Python"* for 30 days) and Kairo generates daily milestone tasks (`[Day 1/30]`, `[Day 2/30]`) at your preferred focus time.
+- **Live Progress & Streak Tracker**: Dedicated goal spotlight card tracking completed sessions, active milestone day, and completion percentage.
+- **Milestone Task Badging**: Task cards highlight `🎯 Day X` badges linking focus blocks to long-term goals.
 
-### 2. ⏱️ Deterministic & Idempotent Status Engine
-Task status transitions are calculated purely based on scheduled time boundaries:
-- **`upcoming`**: Scheduled start time is in the future.
-- **`in_progress`**: Current time is between `startTime` and `endTime` (triggers `started` audit event).
-- **`missed`**: Current time has passed `endTime` without completion (triggers `missed` audit event).
-- **`completed`**: Completed on or before `endTime` (records actual `completedAt` timestamp).
-- **`completed_late`**: Completed after scheduled `endTime`. **Preserves original schedule intact** while giving full completion credit.
-- **`skipped`**: Explicit user action, strictly separate from `missed`.
-- **`rescheduled`**: Shifts to a new time window, preserves previous schedule in history, and resets status deterministically.
-- **Idempotency**: Running status reconciliation 1 time or 100 times at the same moment yields 0 duplicate history events and 0 duplicate notification alerts.
+### 2. 🎙️ Hybrid Voice Coach Reminders (`expo-speech` + `expo-notifications`)
+- **Pre-Start Spoken Alert (15 Mins Before)**: Speaks natural reminders automatically when active or notification is tapped (e.g. *"Sir, 15 minute baad aapka Deep Work schedule hai. Please make sure your availability."*).
+- **At-Start Launch Voice Alert**: Announces task start times cleanly with customizable salutation (`Sir` or custom name) and language (`en-IN`, `hi-IN`, `en-US`).
+- **3-Tier OS Notifications**: 15-min pre-start, at-start, and overdue check-in alerts with automatic cancellation and micro-task (< 15m) duplicate suppression.
 
-### 3. 🤝 Balanced Coaching Style
-- **No guilt or toxic streaks**: If a task ends without being marked done, DayFlow flags it with supportive, non-judgmental guidance ("Life happens—feel free to complete late or reschedule").
-- **Dynamic Coaching Banner**: Analyzes daily progress and offers encouraging, context-aware prompts throughout the day.
+### 3. 🔐 Inbuilt App Lock & 5-Question Security Recovery
+- **3 Flexible Credentials**: Choose a **4-Digit PIN**, **6-Digit PIN**, or **8+ Character Alphanumeric Password**, stored as salted SHA-256 hashes in OS Keychain/Keystore (`expo-secure-store` + `expo-crypto`).
+- **Optional Biometric Unlock**: Fast Fingerprint / Face ID unlock via `expo-local-authentication`.
+- **Smart Background Grace Period**: Configurable `Immediate`, `1 Min Grace`, or `5 Min Grace` lock behavior with zero content flash on startup.
+- **5-Question Account Recovery**: Verify 5 personal security questions to safely reset a forgotten PIN/password without losing local SQLite data.
 
-### 4. 🔔 Smart 3-Tier Reminders (`expo-notifications`)
-- **15 Minutes Before Start**: Mindful pre-focus prompt to ease into the block.
-- **At Start**: Immediate launch notification.
-- **Overdue Check-in**: Associated with the scheduled end time.
-- **Short-Task Duplicate Avoidance**: Automatically suppresses 15-minute reminders for short micro-tasks (< 15 mins) and filters out past times.
-- **Automatic Notification Reconciler**: When a task is completed, skipped, or rescheduled, obsolete pending OS notifications are automatically cancelled and replaced.
+### 4. 🌓 Dual Theme Engine & Airy Navigation
+- **Obsidian Dark & Nordic Light**: High-contrast dark focus palette and warm paper daylight theme persisted locally.
+- **4-Tab Workspace**:
+  - **Today**: Active focus hero card, compact progress strip, context-aware coaching banner, and actionable timeline.
+  - **Schedule**: Multi-day navigation with interactive **Calendar Date Picker** and 1-tap date shortcuts.
+  - **Insights**: Two-tab analytics dashboard (*Daily & Resilience* and *Trends & Rhythm*) with 7-day/monthly charts and 28-day heatmap.
+  - **Settings**: Voice coach customization, App Lock & recovery setup, 12h/24h toggle, haptic feedback toggle, storage telemetry, and offline JSON export/restore.
 
-### 5. 📜 Chronological Accountability Log
-- Every creation, auto-start, reschedule, skip, and completion event is logged in the `task_history` table.
-- Accessible directly on each task card via the **📜 History** button.
-
-### 6. 📊 Intuitive Daily Schedule Interface
-- **Header Progress**: Day selector (Previous, Today, Next) with completion progress bar and counters (*Done*, *Active*, *Upcoming*, *Missed*, *Skipped*).
-- **Task Timeline Cards**: Color-coded status badges, live activity pulse, duration indicators, and 1-tap action buttons.
-- **Fast Modals**: Easy task scheduling presets (*Now*, *+15m*, *Next Hour*) and 1-tap reschedule options (*+1h*, *+2h*, *+3h*, *Tomorrow*).
-- **Pull-to-Refresh**: Instant manual status reconciliation via `RefreshControl`.
+### 5. ⏱️ Deterministic & Idempotent Status Engine
+Task status transitions are computed purely from scheduled boundaries:
+- **`upcoming`** → **`in_progress`** → **`missed`**
+- **`completed`** (on time) vs. **`completed_late`** (preserves original schedule intact)
+- **`skipped`** (intentional conscious choice, separate from `missed`)
+- **`rescheduled`** (logs old schedule in chronological audit history)
+- **Idempotency**: Re-running reconciliation produces zero duplicate history events or alerts.
 
 ---
 
-## 🏗️ Architecture & Project Structure
+## 🏗️ Project Structure
 
 ```text
 SeeYourSelf/
+├── assets/                          # App icon, adaptive icons, SVG vector mark & favicon
+├── docs/
+│   ├── pitch-deck/                  # Investor pitch deck exports (PDF & PPTX)
+│   ├── ARCHITECTURE.md              # System architecture & SQLite v3 schema spec
+│   └── RELEASE_CHECKLIST.md         # Pre-release verification & EAS build guide
 ├── src/
-│   ├── types/
-│   │   └── task.ts                 # Domain models, types & status definitions
-│   ├── database/
-│   │   ├── db.ts                   # SQLite schema, WAL mode, tables & indexes
-│   │   └── taskRepository.ts       # Atomic transactions, CRUD & history logging
-│   ├── services/
-│   │   ├── statusEngine.ts         # Pure, deterministic state machine & transitions
-│   │   ├── notificationPlanner.ts  # Decoupled 3-tier reminder planning logic
-│   │   └── notificationService.ts  # OS expo-notifications scheduling & cancellation
-│   ├── hooks/
-│   │   └── useTasks.ts             # AppState foreground resume hook & task store
 │   ├── components/
-│   │   ├── HeaderProgress.tsx      # Date navigation, progress bar & stat counters
-│   │   ├── CoachingBanner.tsx      # Balanced coaching guidance banner
-│   │   ├── TaskCard.tsx            # Task item, action buttons & status badges
-│   │   ├── CreateTaskModal.tsx     # Fast task creation with presets & durations
-│   │   ├── RescheduleModal.tsx     # 1-tap time-shift modal with reason capture
-│   │   └── HistoryModal.tsx        # Chronological audit trail modal
+│   │   ├── ActiveTaskHero.tsx       # Spotlight card for in-progress focus block
+│   │   ├── CalendarPickerModal.tsx  # Month grid calendar picker & quick jumps
+│   │   ├── CoachingBanner.tsx       # Contextual encouragement / recovery banner
+│   │   ├── CreateGoalModal.tsx      # Long-term goal & daily milestone generator
+│   │   ├── CreateTaskModal.tsx      # Task scheduler with quick presets & steppers
+│   │   ├── DeleteConfirmModal.tsx   # Deliberate delete confirmation dialog
+│   │   ├── EditTaskModal.tsx        # Task editing & live schedule recalculation
+│   │   ├── GoalProgressCard.tsx     # Goal streak & completion card
+│   │   ├── HeaderProgress.tsx       # Compact header summary strip
+│   │   ├── HistoryModal.tsx         # Chronological task accountability log
+│   │   ├── InsightsView.tsx         # 2-tab analytics & activity heatmap
+│   │   ├── LockScreen.tsx           # Zero-flash PIN/Password + Biometric lock screen
+│   │   ├── RescheduleModal.tsx      # Quick time-shift & reschedule modal
+│   │   ├── SecuritySetupModal.tsx   # 2-step PIN/Password + 5-question setup wizard
+│   │   ├── SettingsView.tsx         # Themes, voice, lock, schedule & JSON backup
+│   │   └── TaskCard.tsx             # Task card with non-wrapping primary actions
+│   ├── database/
+│   │   ├── db.ts                    # SQLite connection, WAL mode, v1-v3 migrations
+│   │   └── taskRepository.ts        # Atomic transactions, CRUD, goals & settings
+│   ├── hooks/
+│   │   └── useTasks.ts              # Task/goal orchestration & AppState sync
+│   ├── services/
+│   │   ├── analyticsService.ts      # Daily, weekly, monthly & heatmap aggregators
+│   │   ├── hapticsService.ts        # Expo Haptics wrappers
+│   │   ├── notificationPlanner.ts   # Pure 3-tier reminder schedule planner
+│   │   ├── notificationService.ts   # Expo Notifications scheduling & cancellation
+│   │   ├── securityLogic.ts         # Credential rules, SHA-256 hashing & recovery
+│   │   ├── securityService.ts       # SecureStore & LocalAuthentication integration
+│   │   ├── statusEngine.ts          # Deterministic task state machine
+│   │   ├── voicePlanner.ts          # Pure voice script builder & duplicate filter
+│   │   └── voiceService.ts          # Expo Speech TTS playback & salutation
+│   ├── theme/
+│   │   ├── ThemeContext.tsx         # Light / Dark theme provider & hook
+│   │   └── theme.ts                 # Design tokens, colors, typography & spacing
+│   ├── types/
+│   │   └── task.ts                  # Shared domain types, settings & security models
 │   └── utils/
-│       └── dateUtils.ts            # Date boundary isolation & formatting helpers
-├── tests/
-│   ├── statusEngine.test.ts        # 13 pure unit tests covering time boundaries
-│   └── notificationPlanning.test.ts# 6 tests for reminder planning & short task filtering
-├── App.tsx                         # Main schedule screen
-├── app.json                        # Expo plugins (expo-sqlite, expo-notifications)
-├── tsconfig.json                   # Strict TypeScript configuration
-├── package.json                    # Dependencies and npm scripts
-├── DayFlow_Investor_Pitch_Deck.pptx# Editable 16:9 Investor Presentation
-└── DayFlow_Investor_Pitch_Deck.pdf # Executive Landscape Presentation PDF
+│       └── dateUtils.ts             # Date formatting, day/week/month boundaries
+├── tests/                           # 57 automated tests across 9 test files
+├── App.tsx                          # Root navigation, lock gate & voice coordinator
+├── app.json                         # Expo manifest, permissions & native plugins
+├── eas.json                         # EAS Build profiles (development/preview/production)
+├── eslint.config.js                 # ESLint v9 flat config (eslint-config-expo)
+├── package.json                     # Expo SDK 58 / React Native 0.88 dependencies
+└── tsconfig.json                    # TypeScript strict configuration
 ```
 
 ---
@@ -89,72 +106,51 @@ SeeYourSelf/
 ## 🚀 Getting Started
 
 ### Prerequisites
-- [Node.js](https://nodejs.org/) (v18 or higher; tested on v24.21.0)
-- [Expo Go](https://expo.dev/go) app installed on your physical iOS or Android device
+- Node.js 20+
+- npm
+- Expo Go or an Android Development/Preview Build (recommended for full native features such as Biometrics, SecureStore & Notifications)
 
-### 1. Installation
-Install the project dependencies:
+### Installation & Running
 ```bash
+git clone https://github.com/KrishnaRai07/DayFlow.git
+cd DayFlow
 npm install
-```
-
-### 2. Start the Development Server
-```bash
 npx expo start
 ```
-- **Android**: Open the **Expo Go** app and scan the QR code displayed in your terminal.
-- **iOS**: Open the native **Camera** app, scan the terminal QR code, and tap to launch in Expo Go.
-- **Web**: Press `w` in the terminal to view in your web browser.
 
 ---
 
-## 🧪 Testing & Verification
-
-The core scheduling engine and notification planner are decoupled from native device drivers, allowing **100% headless testing** using Node's test runner and `tsx`:
+## 🧪 Automated Testing & Verification
 
 ```bash
-# Run all automated tests
-npm test
-```
+# Run ESLint check
+npx expo lint
 
-### Test Coverage (19 / 19 Passing Tests):
-- ✅ **Boundary times**: Before start, exactly at start, during window, exactly at end, and after end.
-- ✅ **Completion modes**: Standard completion vs. Late completion (preserving original schedule).
-- ✅ **Disciplinary actions**: Explicit skipping vs. Rescheduling (old schedule preserved in audit log).
-- ✅ **Idempotency**: Repeated status reconciliation guarantees 0 duplicate events.
-- ✅ **Calendar boundaries**: Crossing midnight and day/week boundary isolation.
-- ✅ **Smart notifications**: 3-tier reminder generation, short-task (< 15 mins) duplicate avoidance, and terminal state cleanup.
-
-### Diagnostic Commands:
-```bash
-# Verify TypeScript strict type-checking (0 errors)
+# Run TypeScript typecheck
 npx tsc --noEmit
 
-# Run Expo health check
+# Run all 57 unit tests across 9 suites
+npm test
+
+# Diagnose Expo SDK 58 compatibility
 npx expo-doctor
 ```
 
 ---
 
-## 📱 Mobile Lifecyle & Known Constraints
+## 📦 Android EAS Builds
 
-1. **Background Execution**:
-   - Mobile operating systems (iOS and Android) strictly restrict third-party apps from running background JavaScript loops.
-   - **How DayFlow Solves This**: Local reminders are scheduled directly in the OS notification daemon (`expo-notifications`). When the user brings the app to the foreground, `useTasks` hooks into `AppState: active` to instantly reconcile all task statuses against current clock time.
-2. **Notification Permissions**:
-   - On iOS and Android 13+ (API 33+), OS banner notifications require user permission. DayFlow requests permission on launch. If denied, tasks will still transition correctly in SQLite, but OS banner alerts will be disabled.
+Kairo uses package ID `com.kairo.app` configured in [app.json](app.json) and [eas.json](eas.json):
 
----
+```bash
+# Standalone preview APK
+npx eas-cli build --platform android --profile preview
 
-## 💼 Investor Materials
-
-Included in this repository are investor presentation assets for Seed/Pre-Seed meetings:
-- 📊 **PowerPoint Presentation**: [`DayFlow_Investor_Pitch_Deck.pptx`](./DayFlow_Investor_Pitch_Deck.pptx)
-- 📄 **Executive PDF Deck**: [`DayFlow_Investor_Pitch_Deck.pdf`](./DayFlow_Investor_Pitch_Deck.pdf)
+# Production Google Play AAB
+npx eas-cli build --platform android --profile production
+```
 
 ---
 
-## 📄 License
-MIT License. Built with ❤️ for intentional, balanced daily execution.
-#   D a y F l o w  
- 
+## 📜 License
+MIT License. See [LICENSE](LICENSE).
