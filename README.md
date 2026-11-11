@@ -112,8 +112,8 @@ SeeYourSelf/
 
 ### Installation & Running
 ```bash
-git clone https://github.com/KrishnaRai07/DayFlow.git
-cd DayFlow
+git clone https://github.com/KrishnaRai07/Kairo.git
+cd Kairo
 npm install
 npx expo start
 ```
