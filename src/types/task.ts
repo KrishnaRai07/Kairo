@@ -180,3 +180,34 @@ export interface HeatmapDay {
   completedCount: number;
   level: 0 | 1 | 2 | 3; // intensity 0 to 3
 }
+
+export type FlowMasteryTier = 'spark' | 'builder' | 'keeper' | 'resilient' | 'architect';
+
+export interface FlowMasteryLevel {
+  level: number; // 1 to 5
+  tier: FlowMasteryTier;
+  title: string; // 'Spark', 'Rhythm Builder', 'Flow Keeper', 'Deep Resilient', 'Kairo Architect'
+  badge: string; // '🌱', '🌊', '⚡', '🛡️', '👑'
+  targetDays: number; // 7, 14, 30, 60, 90
+  minScoreThreshold: number; // 65, 75, 80, 85, 90
+  qualifiedDays: number;
+  progressPercent: number; // 0 to 100
+  isUnlocked: boolean;
+  nextLevelTitle?: string;
+  daysRemainingForNext?: number;
+}
+
+export interface FlowScoreMetrics {
+  overallScore: number; // 0 to 100
+  statusRating: 'peak' | 'steady' | 'building' | 'recharge';
+  statusLabel: string; // 'Peak Flow', 'Steady Momentum', 'Building Rhythm', 'Recharging State'
+  motivationalMessage: string;
+  breakdown: {
+    executionScore: number; // weight 40%
+    resilienceScore: number; // weight 30%
+    consistencyScore: number; // weight 20%
+    pacingScore: number; // weight 10%
+  };
+  masteryLevel: FlowMasteryLevel;
+}
+

@@ -401,52 +401,89 @@ export const SettingsView: React.FC<Props> = ({
         )}
       </View>
 
-      {/* 4. Notification Reminders */}
+      {/* 4. Notification & Haptic Reminders (Compact) */}
       <View style={styles.card}>
-        <Text style={styles.cardTitle}>🔔 Reminders</Text>
-
-        <View style={styles.settingRow}>
-          <View style={styles.settingInfo}>
-            <Text style={styles.settingLabel}>15-Min Pre-Focus Alert</Text>
-          </View>
-          <Switch
-            value={settings.enable15MinReminder}
-            onValueChange={(val: boolean) => onUpdateSettings({ enable15MinReminder: val })}
-            trackColor={{ false: theme.colors.surfaceMuted, true: theme.colors.primary }}
-          />
+        <View style={styles.rowBetween}>
+          <Text style={styles.cardTitle}>🔔 Alerts & Reminders</Text>
+          <Text style={styles.miniActiveCount}>
+            {[
+              settings.enable15MinReminder,
+              settings.enableStartReminder,
+              settings.enableOverdueReminder,
+              settings.enableHaptics ?? true,
+            ].filter(Boolean).length} of 4 Active
+          </Text>
         </View>
 
-        <View style={styles.settingRow}>
-          <View style={styles.settingInfo}>
-            <Text style={styles.settingLabel}>At-Start Launch Alert</Text>
-          </View>
-          <Switch
-            value={settings.enableStartReminder}
-            onValueChange={(val: boolean) => onUpdateSettings({ enableStartReminder: val })}
-            trackColor={{ false: theme.colors.surfaceMuted, true: theme.colors.primary }}
-          />
-        </View>
+        <View style={styles.reminderGrid}>
+          <TouchableOpacity
+            style={[styles.reminderPill, settings.enable15MinReminder && styles.reminderPillActive]}
+            onPress={() => {
+              triggerSelectionHaptic(settings.enableHaptics);
+              onUpdateSettings({ enable15MinReminder: !settings.enable15MinReminder });
+            }}
+            activeOpacity={0.75}
+          >
+            <View style={styles.reminderPillContent}>
+              <Text style={styles.reminderPillIcon}>⏰</Text>
+              <Text style={[styles.reminderPillText, settings.enable15MinReminder && styles.reminderPillTextActive]}>
+                15m Before
+              </Text>
+            </View>
+            <View style={[styles.reminderStatusDot, settings.enable15MinReminder && styles.reminderStatusDotActive]} />
+          </TouchableOpacity>
 
-        <View style={styles.settingRow}>
-          <View style={styles.settingInfo}>
-            <Text style={styles.settingLabel}>Overdue Check-in Alert</Text>
-          </View>
-          <Switch
-            value={settings.enableOverdueReminder}
-            onValueChange={(val: boolean) => onUpdateSettings({ enableOverdueReminder: val })}
-            trackColor={{ false: theme.colors.surfaceMuted, true: theme.colors.primary }}
-          />
-        </View>
+          <TouchableOpacity
+            style={[styles.reminderPill, settings.enableStartReminder && styles.reminderPillActive]}
+            onPress={() => {
+              triggerSelectionHaptic(settings.enableHaptics);
+              onUpdateSettings({ enableStartReminder: !settings.enableStartReminder });
+            }}
+            activeOpacity={0.75}
+          >
+            <View style={styles.reminderPillContent}>
+              <Text style={styles.reminderPillIcon}>🚀</Text>
+              <Text style={[styles.reminderPillText, settings.enableStartReminder && styles.reminderPillTextActive]}>
+                At Start
+              </Text>
+            </View>
+            <View style={[styles.reminderStatusDot, settings.enableStartReminder && styles.reminderStatusDotActive]} />
+          </TouchableOpacity>
 
-        <View style={[styles.settingRow, { borderBottomWidth: 0 }]}>
-          <View style={styles.settingInfo}>
-            <Text style={styles.settingLabel}>Haptic Vibration Feedback</Text>
-          </View>
-          <Switch
-            value={settings.enableHaptics ?? true}
-            onValueChange={(val: boolean) => onUpdateSettings({ enableHaptics: val })}
-            trackColor={{ false: theme.colors.surfaceMuted, true: theme.colors.primary }}
-          />
+          <TouchableOpacity
+            style={[styles.reminderPill, settings.enableOverdueReminder && styles.reminderPillActive]}
+            onPress={() => {
+              triggerSelectionHaptic(settings.enableHaptics);
+              onUpdateSettings({ enableOverdueReminder: !settings.enableOverdueReminder });
+            }}
+            activeOpacity={0.75}
+          >
+            <View style={styles.reminderPillContent}>
+              <Text style={styles.reminderPillIcon}>⚠️</Text>
+              <Text style={[styles.reminderPillText, settings.enableOverdueReminder && styles.reminderPillTextActive]}>
+                Overdue
+              </Text>
+            </View>
+            <View style={[styles.reminderStatusDot, settings.enableOverdueReminder && styles.reminderStatusDotActive]} />
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[styles.reminderPill, (settings.enableHaptics ?? true) && styles.reminderPillActive]}
+            onPress={() => {
+              const next = !(settings.enableHaptics ?? true);
+              triggerSelectionHaptic(next);
+              onUpdateSettings({ enableHaptics: next });
+            }}
+            activeOpacity={0.75}
+          >
+            <View style={styles.reminderPillContent}>
+              <Text style={styles.reminderPillIcon}>📳</Text>
+              <Text style={[styles.reminderPillText, (settings.enableHaptics ?? true) && styles.reminderPillTextActive]}>
+                Haptics
+              </Text>
+            </View>
+            <View style={[styles.reminderStatusDot, (settings.enableHaptics ?? true) && styles.reminderStatusDotActive]} />
+          </TouchableOpacity>
         </View>
       </View>
 
@@ -742,6 +779,61 @@ const getStyles = (theme: Theme, isDark: boolean) =>
       fontSize: 13,
       color: theme.colors.textMuted,
       marginBottom: 8,
+    },
+    miniActiveCount: {
+      fontSize: 11.5,
+      fontWeight: '700',
+      color: theme.colors.primary,
+    },
+    reminderGrid: {
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+      gap: 8,
+      marginTop: 8,
+    },
+    reminderPill: {
+      width: '48.5%',
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      paddingVertical: 10,
+      paddingHorizontal: 12,
+      borderRadius: theme.radius.md,
+      backgroundColor: theme.colors.surfaceSecondary,
+      borderWidth: 1,
+      borderColor: isDark ? 'rgba(255, 255, 255, 0.08)' : theme.colors.borderSubtle,
+    },
+    reminderPillActive: {
+      borderColor: theme.colors.primary,
+      backgroundColor: isDark ? 'rgba(56, 189, 248, 0.12)' : 'rgba(56, 189, 248, 0.08)',
+    },
+    reminderPillContent: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 6,
+    },
+    reminderPillIcon: {
+      fontSize: 14,
+    },
+    reminderPillText: {
+      fontSize: 12.5,
+      fontWeight: '600',
+      color: theme.colors.textSecondary,
+    },
+    reminderPillTextActive: {
+      color: theme.colors.primary,
+      fontWeight: '700',
+    },
+    reminderStatusDot: {
+      width: 7,
+      height: 7,
+      borderRadius: 3.5,
+      backgroundColor: theme.colors.textMuted,
+      opacity: 0.5,
+    },
+    reminderStatusDotActive: {
+      backgroundColor: '#38BDF8',
+      opacity: 1,
     },
     themeRow: {
       flexDirection: 'row',

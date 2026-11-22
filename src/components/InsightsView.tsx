@@ -16,6 +16,7 @@ import {
   ResilienceMetrics,
   FocusTimeDistribution,
   HeatmapDay,
+  FlowScoreMetrics,
 } from '../types/task';
 import { TaskRepository } from '../database/taskRepository';
 import {
@@ -25,6 +26,7 @@ import {
   computeResilienceMetrics,
   computeFocusTimeDistribution,
   computeActivityHeatmap,
+  computeFlowScoreAndMastery,
 } from '../services/analyticsService';
 import { useTheme } from '../theme/ThemeContext';
 import { Theme } from '../theme/theme';
@@ -49,6 +51,7 @@ export const InsightsView: React.FC<Props> = ({ tasks, selectedDate }) => {
   const [resilience, setResilience] = useState<ResilienceMetrics | null>(null);
   const [focusDist, setFocusDist] = useState<FocusTimeDistribution | null>(null);
   const [heatmap, setHeatmap] = useState<HeatmapDay[]>([]);
+  const [flowScore, setFlowScore] = useState<FlowScoreMetrics | null>(null);
   const [chartMode, setChartMode] = useState<'weekly' | 'monthly'>('weekly');
 
   useEffect(() => {
@@ -75,6 +78,7 @@ export const InsightsView: React.FC<Props> = ({ tasks, selectedDate }) => {
         const res = computeResilienceMetrics(fetchedAllTasks, events);
         const dist = computeFocusTimeDistribution(fetchedAllTasks);
         const heat = computeActivityHeatmap(fetchedAllTasks, selectedDate, 28);
+        const flow = computeFlowScoreAndMastery(fetchedAllTasks, events, selectedDate);
 
         if (isMounted) {
           setWeeklyTrend(weekly);
@@ -83,6 +87,7 @@ export const InsightsView: React.FC<Props> = ({ tasks, selectedDate }) => {
           setResilience(res);
           setFocusDist(dist);
           setHeatmap(heat);
+          setFlowScore(flow);
         }
       } catch (error) {
         console.warn('Failed to load analytics:', error);
@@ -121,6 +126,76 @@ export const InsightsView: React.FC<Props> = ({ tasks, selectedDate }) => {
         <Text style={styles.title}>Insights</Text>
         <Text style={styles.subtitle}>Intentional reflection & execution momentum</Text>
       </View>
+
+      {/* 0. Flow Mastery & Overall Score Spotlight Hero */}
+      {flowScore && (
+        <View style={styles.flowHeroCard}>
+          <View style={styles.flowHeroHeader}>
+            <View style={styles.flowHeroHeaderLeft}>
+              <View style={styles.levelBadgeRow}>
+                <Text style={styles.levelBadgeIcon}>{flowScore.masteryLevel.badge}</Text>
+                <Text style={styles.levelBadgeText}>
+                  LEVEL {flowScore.masteryLevel.level} · {flowScore.masteryLevel.title.toUpperCase()}
+                </Text>
+              </View>
+              <Text style={styles.flowStatusTitle}>{flowScore.statusLabel}</Text>
+            </View>
+
+            {/* Glowing Big Score Display */}
+            <View style={styles.scoreCircle}>
+              <Text style={styles.scoreNumber}>{flowScore.overallScore}</Text>
+              <Text style={styles.scoreUnit}>FLOW</Text>
+            </View>
+          </View>
+
+          {/* Motivational Psychological Safety Coaching */}
+          <Text style={styles.flowMotivationalText}>
+            {flowScore.motivationalMessage}
+          </Text>
+
+          {/* Level Up Progress Meter (Days + Consistency Gate) */}
+          <View style={styles.levelProgressContainer}>
+            <View style={styles.levelProgressHeader}>
+              <Text style={styles.levelProgressLabel}>
+                {flowScore.masteryLevel.qualifiedDays} / {flowScore.masteryLevel.targetDays} Days at {flowScore.masteryLevel.minScoreThreshold}+ Flow
+              </Text>
+              <Text style={styles.levelNextLabel}>
+                {flowScore.masteryLevel.daysRemainingForNext && flowScore.masteryLevel.daysRemainingForNext > 0
+                  ? `${flowScore.masteryLevel.daysRemainingForNext}d to Level Up`
+                  : 'Mastery Active'}
+              </Text>
+            </View>
+            <View style={styles.levelProgressTrack}>
+              <View
+                style={[
+                  styles.levelProgressFill,
+                  { width: `${flowScore.masteryLevel.progressPercent}%` },
+                ]}
+              />
+            </View>
+          </View>
+
+          {/* 4-Pillar Score Breakdown Pills */}
+          <View style={styles.flowPillarsRow}>
+            <View style={styles.pillarItem}>
+              <Text style={styles.pillarValue}>{flowScore.breakdown.executionScore}%</Text>
+              <Text style={styles.pillarLabel}>Execution</Text>
+            </View>
+            <View style={styles.pillarItem}>
+              <Text style={styles.pillarValue}>{flowScore.breakdown.resilienceScore}%</Text>
+              <Text style={styles.pillarLabel}>Resilience</Text>
+            </View>
+            <View style={styles.pillarItem}>
+              <Text style={styles.pillarValue}>{flowScore.breakdown.consistencyScore}%</Text>
+              <Text style={styles.pillarLabel}>Consistency</Text>
+            </View>
+            <View style={styles.pillarItem}>
+              <Text style={styles.pillarValue}>{flowScore.breakdown.pacingScore}%</Text>
+              <Text style={styles.pillarLabel}>Pacing</Text>
+            </View>
+          </View>
+        </View>
+      )}
 
       {/* Clean 2-Way Tab Switcher */}
       <View style={styles.tabBar}>
@@ -453,6 +528,134 @@ const getStyles = (theme: Theme, isDark: boolean) =>
     subtitle: {
       fontSize: 13.5,
       color: theme.colors.textSecondary,
+      marginTop: 2,
+    },
+    flowHeroCard: {
+      backgroundColor: isDark ? '#0F172A' : theme.colors.surface,
+      borderRadius: theme.radius.xl,
+      padding: 16,
+      marginBottom: 16,
+      borderWidth: 1.5,
+      borderColor: isDark ? 'rgba(56, 189, 248, 0.45)' : 'rgba(2, 132, 199, 0.35)',
+      shadowColor: isDark ? '#38BDF8' : '#0284C7',
+      shadowOffset: { width: 0, height: 3 },
+      shadowOpacity: isDark ? 0.35 : 0.20,
+      shadowRadius: 14,
+      elevation: 6,
+    },
+    flowHeroHeader: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+    },
+    flowHeroHeaderLeft: {
+      flex: 1,
+      marginRight: 12,
+    },
+    levelBadgeRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 6,
+      marginBottom: 3,
+    },
+    levelBadgeIcon: {
+      fontSize: 16,
+    },
+    levelBadgeText: {
+      fontSize: 11,
+      fontWeight: '800',
+      color: '#38BDF8',
+      letterSpacing: 0.6,
+      fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace',
+    },
+    flowStatusTitle: {
+      fontSize: 19,
+      fontWeight: '800',
+      color: theme.colors.textPrimary,
+    },
+    scoreCircle: {
+      width: 64,
+      height: 64,
+      borderRadius: 32,
+      alignItems: 'center',
+      justifyContent: 'center',
+      backgroundColor: isDark ? 'rgba(56, 189, 248, 0.15)' : 'rgba(56, 189, 248, 0.1)',
+      borderWidth: 1.5,
+      borderColor: '#38BDF8',
+    },
+    scoreNumber: {
+      fontSize: 22,
+      fontWeight: '800',
+      color: isDark ? '#38BDF8' : theme.colors.primary,
+      lineHeight: 24,
+    },
+    scoreUnit: {
+      fontSize: 8.5,
+      fontWeight: '800',
+      color: isDark ? '#38BDF8' : theme.colors.primary,
+      letterSpacing: 0.8,
+    },
+    flowMotivationalText: {
+      fontSize: 13,
+      color: isDark ? '#CBD5E1' : '#475569',
+      lineHeight: 18,
+      marginTop: 10,
+      marginBottom: 12,
+    },
+    levelProgressContainer: {
+      backgroundColor: theme.colors.surfaceSecondary,
+      borderRadius: theme.radius.md,
+      padding: 10,
+      marginBottom: 12,
+    },
+    levelProgressHeader: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      marginBottom: 6,
+    },
+    levelProgressLabel: {
+      fontSize: 11.5,
+      fontWeight: '700',
+      color: theme.colors.textPrimary,
+    },
+    levelNextLabel: {
+      fontSize: 11,
+      fontWeight: '700',
+      color: '#38BDF8',
+    },
+    levelProgressTrack: {
+      height: 6,
+      borderRadius: 3,
+      backgroundColor: isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.08)',
+      overflow: 'hidden',
+    },
+    levelProgressFill: {
+      height: '100%',
+      borderRadius: 3,
+      backgroundColor: '#38BDF8',
+    },
+    flowPillarsRow: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      gap: 6,
+    },
+    pillarItem: {
+      flex: 1,
+      backgroundColor: theme.colors.surfaceSecondary,
+      borderRadius: theme.radius.sm,
+      paddingVertical: 7,
+      paddingHorizontal: 4,
+      alignItems: 'center',
+    },
+    pillarValue: {
+      fontSize: 13,
+      fontWeight: '800',
+      color: theme.colors.textPrimary,
+      fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace',
+    },
+    pillarLabel: {
+      fontSize: 9.5,
+      color: theme.colors.textMuted,
       marginTop: 2,
     },
     tabBar: {
