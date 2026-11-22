@@ -49,7 +49,8 @@
           "configureAndroidBackup": true,
           "faceIDPermission": "Allow Kairo to access secure authentication keys."
         }
-      ]
+      ],
+      "expo-status-bar"
     ],
     "extra": {
       "eas": {

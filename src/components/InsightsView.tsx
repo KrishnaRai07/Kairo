@@ -103,6 +103,17 @@ export const InsightsView: React.FC<Props> = ({ tasks, selectedDate }) => {
   const dayMetrics = computeDayMetrics(tasks, selectedDate);
   const dayRatePct = Math.round(dayMetrics.completionRate * 100);
 
+  const activeDaysCount = heatmap.filter((d) => d.completedCount > 0).length;
+  const consistencyPct = Math.round((activeDaysCount / 28) * 100);
+  let currentStreak = 0;
+  for (let i = heatmap.length - 1; i >= 0; i--) {
+    if (heatmap[i].completedCount > 0) {
+      currentStreak++;
+    } else {
+      break;
+    }
+  }
+
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
       {/* Title Header */}
@@ -236,12 +247,36 @@ export const InsightsView: React.FC<Props> = ({ tasks, selectedDate }) => {
           {/* 1. 28-Day Consistency Matrix Heatmap */}
           <View style={styles.sectionCard}>
             <View style={styles.sectionHeader}>
-              <Text style={styles.sectionTitle}>28-Day Consistency</Text>
-              <Text style={styles.heatmapCountText}>
-                {heatmap.filter((d) => d.completedCount > 0).length} active days
-              </Text>
+              <Text style={styles.sectionTitle}>28-Day Consistency Matrix</Text>
+              <View style={styles.rateBadge}>
+                <Text style={styles.rateBadgeText}>{consistencyPct}% Consistent</Text>
+              </View>
             </View>
 
+            {/* Matrix Summary Stats Row */}
+            <View style={styles.matrixStatsRow}>
+              <View style={styles.matrixStatPill}>
+                <Text style={styles.matrixStatValue}>{activeDaysCount} / 28</Text>
+                <Text style={styles.matrixStatLabel}>Active Days</Text>
+              </View>
+              <View style={styles.matrixStatPill}>
+                <Text style={styles.matrixStatValue}>
+                  🔥 {currentStreak} {currentStreak === 1 ? 'Day' : 'Days'}
+                </Text>
+                <Text style={styles.matrixStatLabel}>Current Streak</Text>
+              </View>
+            </View>
+
+            {/* Weekday Column Headers */}
+            <View style={styles.weekdayRow}>
+              {['M', 'T', 'W', 'T', 'F', 'S', 'S'].map((day, dIdx) => (
+                <Text key={dIdx} style={styles.weekdayHeader}>
+                  {day}
+                </Text>
+              ))}
+            </View>
+
+            {/* 4x7 Squircle Heatmap Grid */}
             <View style={styles.heatmapGrid}>
               {heatmap.map((cell, idx) => {
                 let cellStyle = styles.heatCell0;
@@ -411,12 +446,12 @@ const getStyles = (theme: Theme, isDark: boolean) =>
       marginBottom: 12,
     },
     title: {
-      fontSize: 22,
+      fontSize: 24,
       fontWeight: '800',
       color: theme.colors.textPrimary,
     },
     subtitle: {
-      fontSize: 12,
+      fontSize: 13.5,
       color: theme.colors.textSecondary,
       marginTop: 2,
     },
@@ -429,7 +464,7 @@ const getStyles = (theme: Theme, isDark: boolean) =>
     },
     tabButton: {
       flex: 1,
-      paddingVertical: 8,
+      paddingVertical: 9,
       alignItems: 'center',
       borderRadius: theme.radius.sm,
     },
@@ -438,7 +473,7 @@ const getStyles = (theme: Theme, isDark: boolean) =>
       elevation: 2,
     },
     tabButtonText: {
-      fontSize: 12,
+      fontSize: 13,
       fontWeight: '600',
       color: theme.colors.textMuted,
     },
@@ -465,7 +500,7 @@ const getStyles = (theme: Theme, isDark: boolean) =>
       gap: 6,
     },
     resilienceIcon: {
-      fontSize: 15,
+      fontSize: 16,
     },
     sectionHeader: {
       flexDirection: 'row',
@@ -474,7 +509,7 @@ const getStyles = (theme: Theme, isDark: boolean) =>
       marginBottom: 10,
     },
     sectionTitle: {
-      fontSize: 14,
+      fontSize: 15,
       fontWeight: '700',
       color: theme.colors.textPrimary,
     },
@@ -485,7 +520,7 @@ const getStyles = (theme: Theme, isDark: boolean) =>
       borderRadius: theme.radius.full,
     },
     rateBadgeText: {
-      fontSize: 11,
+      fontSize: 12,
       fontWeight: '700',
       color: '#38BDF8',
       fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace',
@@ -497,14 +532,14 @@ const getStyles = (theme: Theme, isDark: boolean) =>
       borderRadius: theme.radius.full,
     },
     resilienceScoreText: {
-      fontSize: 10,
+      fontSize: 11.5,
       fontWeight: '800',
       color: '#38BDF8',
     },
     resilienceNarrative: {
-      fontSize: 12,
+      fontSize: 13.5,
       color: isDark ? '#CBD5E1' : '#334155',
-      lineHeight: 17,
+      lineHeight: 19,
       marginBottom: 8,
     },
     boldText: {
@@ -531,17 +566,17 @@ const getStyles = (theme: Theme, isDark: boolean) =>
       alignItems: 'center',
     },
     metricNumber: {
-      fontSize: 18,
+      fontSize: 22,
       fontWeight: '800',
       fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace',
     },
     metricLabel: {
-      fontSize: 10,
+      fontSize: 11.5,
       color: theme.colors.textMuted,
       marginTop: 2,
     },
     footerNote: {
-      fontSize: 11,
+      fontSize: 12,
       color: theme.colors.textMuted,
       textAlign: 'center',
       marginTop: 4,
@@ -555,13 +590,13 @@ const getStyles = (theme: Theme, isDark: boolean) =>
       marginBottom: 4,
     },
     goalMiniTitle: {
-      fontSize: 12,
+      fontSize: 13.5,
       fontWeight: '600',
       color: theme.colors.textPrimary,
       flex: 1,
     },
     goalMiniMilestone: {
-      fontSize: 10,
+      fontSize: 11.5,
       fontWeight: '700',
       color: '#A855F7',
     },
@@ -576,26 +611,63 @@ const getStyles = (theme: Theme, isDark: boolean) =>
       backgroundColor: '#A855F7',
     },
     heatmapCountText: {
-      fontSize: 11,
+      fontSize: 12,
       fontWeight: '700',
       color: theme.colors.primary,
+    },
+    matrixStatsRow: {
+      flexDirection: 'row',
+      gap: 10,
+      marginBottom: 12,
+    },
+    matrixStatPill: {
+      flex: 1,
+      backgroundColor: theme.colors.surfaceSecondary,
+      borderRadius: theme.radius.md,
+      paddingVertical: 8,
+      paddingHorizontal: 12,
+      alignItems: 'center',
+    },
+    matrixStatValue: {
+      fontSize: 16,
+      fontWeight: '800',
+      color: theme.colors.textPrimary,
+      fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace',
+    },
+    matrixStatLabel: {
+      fontSize: 11,
+      color: theme.colors.textMuted,
+      marginTop: 2,
+    },
+    weekdayRow: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      paddingHorizontal: 4,
+      marginBottom: 6,
+    },
+    weekdayHeader: {
+      width: '13%',
+      textAlign: 'center',
+      fontSize: 11.5,
+      fontWeight: '700',
+      color: theme.colors.textMuted,
     },
     heatmapGrid: {
       flexDirection: 'row',
       flexWrap: 'wrap',
-      gap: 6,
+      gap: 4,
       justifyContent: 'space-between',
       paddingVertical: 2,
     },
     heatCellWrapper: {
-      width: '12%',
+      width: '13%',
       alignItems: 'center',
-      marginVertical: 2,
+      marginVertical: 3,
     },
     heatCell: {
-      width: 20,
-      height: 20,
-      borderRadius: 5,
+      width: 28,
+      height: 28,
+      borderRadius: 7,
     },
     heatCell0: {
       backgroundColor: isDark ? 'rgba(255, 255, 255, 0.06)' : 'rgba(0, 0, 0, 0.05)',
@@ -622,11 +694,11 @@ const getStyles = (theme: Theme, isDark: boolean) =>
       borderRadius: 2,
     },
     legendText: {
-      fontSize: 9,
+      fontSize: 11,
       color: theme.colors.textMuted,
     },
     peakBadge: {
-      fontSize: 11,
+      fontSize: 12,
       fontWeight: '700',
       color: '#38BDF8',
     },
@@ -643,13 +715,13 @@ const getStyles = (theme: Theme, isDark: boolean) =>
       alignItems: 'center',
     },
     distValue: {
-      fontSize: 15,
+      fontSize: 18,
       fontWeight: '800',
       color: theme.colors.textPrimary,
       fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace',
     },
     distLabel: {
-      fontSize: 9,
+      fontSize: 11,
       color: theme.colors.textMuted,
       marginTop: 2,
     },
@@ -660,7 +732,7 @@ const getStyles = (theme: Theme, isDark: boolean) =>
     },
     chartToggleBtn: {
       flex: 1,
-      paddingVertical: 6,
+      paddingVertical: 7,
       borderRadius: theme.radius.md,
       backgroundColor: theme.colors.surfaceSecondary,
       alignItems: 'center',
@@ -671,7 +743,7 @@ const getStyles = (theme: Theme, isDark: boolean) =>
       borderColor: theme.colors.borderSubtle,
     },
     chartToggleText: {
-      fontSize: 11,
+      fontSize: 12.5,
       color: theme.colors.textMuted,
       fontWeight: '600',
     },
@@ -692,7 +764,7 @@ const getStyles = (theme: Theme, isDark: boolean) =>
       alignItems: 'center',
     },
     barPctText: {
-      fontSize: 9,
+      fontSize: 11,
       color: theme.colors.textMuted,
       marginBottom: 4,
       fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace',
@@ -710,7 +782,7 @@ const getStyles = (theme: Theme, isDark: boolean) =>
       borderRadius: 6,
     },
     barDayLabel: {
-      fontSize: 10,
+      fontSize: 11.5,
       fontWeight: '600',
       color: theme.colors.textPrimary,
       marginTop: 4,
@@ -729,13 +801,13 @@ const getStyles = (theme: Theme, isDark: boolean) =>
       alignItems: 'center',
     },
     highlightValue: {
-      fontSize: 13,
+      fontSize: 15,
       fontWeight: '800',
       color: theme.colors.textPrimary,
       fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace',
     },
     highlightLabel: {
-      fontSize: 9,
+      fontSize: 11,
       color: theme.colors.textMuted,
       marginTop: 1,
     },
@@ -753,13 +825,13 @@ const getStyles = (theme: Theme, isDark: boolean) =>
       alignItems: 'center',
     },
     monthlyNum: {
-      fontSize: 16,
+      fontSize: 18,
       fontWeight: '800',
       color: theme.colors.textPrimary,
       fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace',
     },
     monthlySub: {
-      fontSize: 10,
+      fontSize: 12,
       color: theme.colors.textMuted,
       marginTop: 2,
     },
@@ -770,6 +842,6 @@ const getStyles = (theme: Theme, isDark: boolean) =>
     loadingText: {
       marginTop: 8,
       color: theme.colors.textMuted,
-      fontSize: 12,
+      fontSize: 13,
     },
   });

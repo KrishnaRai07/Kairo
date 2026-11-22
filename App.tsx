@@ -323,13 +323,20 @@ export default function App() {
           </Text>
         </View>
         <TouchableOpacity
-          style={[styles.newTaskButton, { backgroundColor: activeTheme.colors.primary }]}
-          onPress={() => setCreateModalVisible(true)}
-          activeOpacity={0.8}
+          style={[
+            styles.headerThemeBtn,
+            {
+              backgroundColor: activeTheme.colors.surfaceSecondary,
+              borderColor: activeTheme.colors.borderSubtle,
+            },
+          ]}
+          onPress={() => {
+            handleUpdateSettings({ themeMode: isDark ? 'light' : 'dark' });
+          }}
+          activeOpacity={0.7}
+          accessibilityLabel="Toggle Theme"
         >
-          <Text style={styles.newTaskButtonText}>
-            + New Task
-          </Text>
+          <Text style={styles.headerThemeIcon}>{isDark ? '☀️' : '🌙'}</Text>
         </TouchableOpacity>
       </View>
 
@@ -567,6 +574,19 @@ export default function App() {
           </Text>
         </TouchableOpacity>
 
+        {/* Center Blue Elevated "+" Quick Add Action */}
+        <TouchableOpacity
+          style={[
+            styles.centerFabButton,
+            { borderColor: activeTheme.colors.surface },
+          ]}
+          onPress={() => setCreateModalVisible(true)}
+          activeOpacity={0.85}
+          accessibilityLabel="Add Task"
+        >
+          <Text style={styles.centerFabPlus}>+</Text>
+        </TouchableOpacity>
+
         <TouchableOpacity
           style={[styles.tabItem, activeTab === 'insights' && styles.tabItemActive]}
           onPress={() => setActiveTab('insights')}
@@ -694,24 +714,47 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   appTitle: {
-    fontSize: 24,
+    fontSize: 26,
     fontWeight: '800',
     letterSpacing: -0.5,
   },
   appSubtitle: {
-    fontSize: 12,
+    fontSize: 13,
     fontWeight: '500',
     marginTop: 1,
   },
-  newTaskButton: {
-    paddingVertical: 9,
-    paddingHorizontal: 16,
-    borderRadius: 14, // Pebble curve
+  headerThemeBtn: {
+    width: 38,
+    height: 38,
+    borderRadius: 19,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
   },
-  newTaskButtonText: {
-    fontWeight: '700',
-    fontSize: 13,
+  headerThemeIcon: {
+    fontSize: 18,
+  },
+  centerFabButton: {
+    width: 54,
+    height: 54,
+    borderRadius: 27,
+    backgroundColor: '#0284C7',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: -22,
+    elevation: 8,
+    shadowColor: '#0284C7',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.35,
+    shadowRadius: 8,
+    borderWidth: 3,
+  },
+  centerFabPlus: {
+    fontSize: 32,
+    fontWeight: '400',
     color: '#FFFFFF',
+    lineHeight: 34,
+    marginTop: Platform.OS === 'android' ? -2 : 0,
   },
   tabContentContainer: {
     flex: 1,
@@ -741,32 +784,32 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   emptyTitle: {
-    fontSize: 18,
+    fontSize: 19,
     fontWeight: '700',
     marginBottom: 6,
   },
   emptyText: {
-    fontSize: 13,
+    fontSize: 14,
     textAlign: 'center',
-    lineHeight: 20,
-    maxWidth: 280,
+    lineHeight: 21,
+    maxWidth: 290,
     marginBottom: 24,
   },
   emptyAddButton: {
-    paddingVertical: 12,
-    paddingHorizontal: 22,
+    paddingVertical: 13,
+    paddingHorizontal: 24,
     borderRadius: 14,
   },
   emptyAddButtonText: {
     fontWeight: '700',
-    fontSize: 14,
+    fontSize: 15,
     color: '#FFFFFF',
   },
   section: {
     marginTop: 16,
   },
   sectionHeader: {
-    fontSize: 11,
+    fontSize: 12,
     fontWeight: '700',
     marginHorizontal: 16,
     marginBottom: 8,
@@ -778,6 +821,7 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
     paddingVertical: 8,
     paddingBottom: Platform.OS === 'ios' ? 24 : 10,
+    alignItems: 'center',
   },
   tabItem: {
     flex: 1,
@@ -789,14 +833,14 @@ const styles = StyleSheet.create({
     transform: [{ scale: 1.05 }],
   },
   tabIcon: {
-    fontSize: 18,
+    fontSize: 19,
     opacity: 0.65,
   },
   tabIconActive: {
     opacity: 1,
   },
   tabLabel: {
-    fontSize: 10,
+    fontSize: 11,
     fontWeight: '700',
     marginTop: 2,
   },

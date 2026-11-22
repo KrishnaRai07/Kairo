@@ -56,14 +56,14 @@ const getStyles = (theme: Theme) =>
       borderWidth: 1,
     },
     icon: {
-      fontSize: 15,
+      fontSize: 16,
       marginRight: 8,
     },
     message: {
       flex: 1,
-      fontSize: 11,
+      fontSize: 13,
       fontWeight: '600',
-      lineHeight: 16,
+      lineHeight: 18,
     },
     warningBg: {
       backgroundColor: theme.colors.status.missedBg,

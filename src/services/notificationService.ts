@@ -1,9 +1,13 @@
+import { Platform } from 'react-native';
 import * as Notifications from 'expo-notifications';
+import { AndroidImportance, AndroidNotificationVisibility } from 'expo-notifications';
 import { Task, TaskReminder, UserSettings } from '../types/task';
 import { generateUUID } from './statusEngine';
 import { planTaskReminders, PlannedReminder } from './notificationPlanner';
 
 export { planTaskReminders, PlannedReminder };
+
+export const REMINDER_CHANNEL_ID = 'kairo-reminders';
 
 // Configure notification behavior when app is in foreground
 Notifications.setNotificationHandler({
@@ -13,15 +17,41 @@ Notifications.setNotificationHandler({
     shouldSetBadge: false,
     shouldShowBanner: true,
     shouldShowList: true,
-    priority: Notifications.AndroidNotificationPriority.HIGH,
+    priority: Notifications.AndroidNotificationPriority.MAX,
   }),
 });
 
 /**
- * Requests notification permissions from the OS.
+ * Ensures high-priority notification channel exists on Android 8.0+ (API 26+)
+ * with maximum importance, sound, vibration, and lockscreen visibility.
+ */
+export async function setupNotificationChannels(): Promise<void> {
+  if (Platform.OS === 'android') {
+    try {
+      await Notifications.setNotificationChannelAsync(REMINDER_CHANNEL_ID, {
+        name: 'Task Reminders & Voice Alerts',
+        importance: AndroidImportance.MAX,
+        vibrationPattern: [0, 250, 250, 250],
+        lightColor: '#38BDF8',
+        sound: 'default',
+        enableLights: true,
+        enableVibrate: true,
+        showBadge: true,
+        lockscreenVisibility: AndroidNotificationVisibility.PUBLIC,
+        bypassDnd: false,
+      });
+    } catch (e) {
+      console.warn('Failed to configure Android notification channel:', e);
+    }
+  }
+}
+
+/**
+ * Requests notification permissions from the OS and ensures notification channels.
  */
 export async function requestNotificationPermissions(): Promise<boolean> {
   try {
+    await setupNotificationChannels();
     const { status: existingStatus } = await Notifications.getPermissionsAsync();
     let finalStatus = existingStatus;
     if (existingStatus !== 'granted') {
@@ -44,6 +74,7 @@ export async function scheduleRemindersForTask(
   referenceTime: Date = new Date(),
   settings?: UserSettings
 ): Promise<TaskReminder[]> {
+  await setupNotificationChannels();
   const planned = planTaskReminders(task, referenceTime, settings);
   const createdReminders: TaskReminder[] = [];
 
@@ -60,11 +91,13 @@ export async function scheduleRemindersForTask(
             taskTitle: task.title,
             startTime: task.startTime,
           },
-          sound: true,
+          sound: 'default',
+          priority: Notifications.AndroidNotificationPriority.MAX,
         },
         trigger: {
           type: Notifications.SchedulableTriggerInputTypes.DATE,
           date: triggerDate,
+          channelId: REMINDER_CHANNEL_ID,
         },
       });
 

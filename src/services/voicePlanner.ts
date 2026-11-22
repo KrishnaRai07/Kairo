@@ -80,10 +80,10 @@ export function findDueVoiceAlerts(
       continue;
     }
 
-    // 1. 15 minutes before start window: [start - 15m - 15s, start - 13m]
+    // 1. 15 minutes before start window: from 15m mark until 1m before start
     if (allow15Min && durationMs >= 15 * 60 * 1000) {
       const fifteenBeforeMs = startMs - 15 * 60 * 1000;
-      if (nowMs >= fifteenBeforeMs - 15 * 1000 && nowMs <= fifteenBeforeMs + 120 * 1000 && nowMs < startMs) {
+      if (nowMs >= fifteenBeforeMs - 15 * 1000 && nowMs < startMs - 60 * 1000) {
         const key = getVoiceAlertKey(task.id, '15min_before', task.startTime);
         if (!alreadySpokenKeys.has(key)) {
           dueAlerts.push({
@@ -97,8 +97,8 @@ export function findDueVoiceAlerts(
       }
     }
 
-    // 2. At exact task start window: [start - 10s, start + 120s]
-    if (allowStart && nowMs >= startMs - 10 * 1000 && nowMs <= startMs + 120 * 1000 && nowMs < endMs) {
+    // 2. At exact task start window: [start - 10s, start + 180s]
+    if (allowStart && nowMs >= startMs - 10 * 1000 && nowMs <= startMs + 180 * 1000 && nowMs < endMs) {
       const key = getVoiceAlertKey(task.id, 'at_start', task.startTime);
       if (!alreadySpokenKeys.has(key)) {
         dueAlerts.push({

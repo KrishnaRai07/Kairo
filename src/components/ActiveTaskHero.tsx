@@ -175,7 +175,7 @@ const getStyles = (theme: Theme, isDark: boolean) =>
       backgroundColor: isDark ? '#38BDF8' : theme.colors.primary,
     },
     pulseLabel: {
-      fontSize: 10,
+      fontSize: 11,
       fontWeight: theme.typography.fontWeight.heavy,
       color: isDark ? '#38BDF8' : theme.colors.primary,
       letterSpacing: 0.9,
@@ -190,7 +190,7 @@ const getStyles = (theme: Theme, isDark: boolean) =>
       borderRadius: theme.radius.full,
     },
     countdownNumber: {
-      fontSize: theme.typography.fontSize.xs,
+      fontSize: 12.5,
       fontWeight: theme.typography.fontWeight.bold,
       color: isDark ? '#38BDF8' : theme.colors.primary,
       fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace',
@@ -219,7 +219,7 @@ const getStyles = (theme: Theme, isDark: boolean) =>
       borderColor: theme.colors.borderSubtle,
     },
     boundaryText: {
-      fontSize: theme.typography.fontSize.xs,
+      fontSize: 13,
       fontWeight: theme.typography.fontWeight.semibold,
       color: isDark ? '#E2E8F0' : theme.colors.textPrimary,
       fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace',
@@ -255,7 +255,7 @@ const getStyles = (theme: Theme, isDark: boolean) =>
       elevation: 4,
     },
     completeHeroText: {
-      fontSize: theme.typography.fontSize.sm,
+      fontSize: 14,
       fontWeight: theme.typography.fontWeight.bold,
       color: '#FFFFFF',
       letterSpacing: 0.2,
@@ -271,7 +271,7 @@ const getStyles = (theme: Theme, isDark: boolean) =>
       justifyContent: 'center',
     },
     adjustHeroText: {
-      fontSize: theme.typography.fontSize.xs,
+      fontSize: 13,
       fontWeight: theme.typography.fontWeight.semibold,
       color: theme.colors.textPrimary,
     },
@@ -286,7 +286,7 @@ const getStyles = (theme: Theme, isDark: boolean) =>
       justifyContent: 'center',
     },
     skipHeroText: {
-      fontSize: theme.typography.fontSize.xs,
+      fontSize: 13,
       fontWeight: theme.typography.fontWeight.semibold,
       color: theme.colors.textMuted,
     },

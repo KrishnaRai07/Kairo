@@ -43,11 +43,11 @@ export function planTaskReminders(
   // 1. 15-Minute Pre-start Reminder
   // Criteria:
   // - Enabled in settings
-  // - Alarm must be in the future (at least 60 seconds from referenceTime)
-  // - Task duration should be reasonable (at least 15 minutes), so short 5-minute micro-tasks don't barrage the user
+  // - Alarm must be in the future (at least 10 seconds from referenceTime)
+  // - Task duration should be reasonable (at least 15 minutes)
   if (allow15Min) {
     const fifteenBeforeMs = startMs - 15 * 60 * 1000;
-    if (fifteenBeforeMs > nowMs + 60 * 1000 && durationMs >= 15 * 60 * 1000) {
+    if (fifteenBeforeMs > nowMs + 10 * 1000 && durationMs >= 15 * 60 * 1000) {
       planned.push({
         triggerType: '15min_before',
         scheduledFor: new Date(fifteenBeforeMs).toISOString(),
@@ -59,7 +59,7 @@ export function planTaskReminders(
 
   // 2. At Start Reminder
   // Only schedule if start time is in the future
-  if (allowStart && startMs > nowMs + 30 * 1000) {
+  if (allowStart && startMs > nowMs + 5 * 1000) {
     planned.push({
       triggerType: 'at_start',
       scheduledFor: new Date(startMs).toISOString(),

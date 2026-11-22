@@ -225,53 +225,23 @@ export const SettingsView: React.FC<Props> = ({
         <Text style={styles.subtitle}>Personalize voice alerts, security & workspace</Text>
       </View>
 
-      {/* 1. Visual Aesthetic (2-Way Theme Switcher: Nordic Light & Obsidian Dark) */}
+      {/* 1. Visual Aesthetic (Single Theme Toggle Switch) */}
       <View style={styles.card}>
-        <Text style={styles.cardTitle}>Visual Aesthetic</Text>
-        <View style={styles.themeRow}>
-          <TouchableOpacity
-            style={[
-              styles.themeBtn,
-              settings.themeMode === 'light' && styles.themeBtnActive,
-            ]}
-            onPress={() => {
-              triggerSelectionHaptic(settings.enableHaptics);
-              onUpdateSettings({ themeMode: 'light' });
-            }}
-          >
-            <Text style={styles.themeEmoji}>🌱</Text>
-            <Text
-              style={[
-                styles.themeBtnText,
-                settings.themeMode === 'light' && styles.themeBtnTextActive,
-              ]}
-            >
-              Nordic Light
+        <View style={styles.rowBetween}>
+          <View style={styles.settingInfo}>
+            <Text style={styles.cardTitle}>Visual Aesthetic</Text>
+            <Text style={styles.cardSubtitle}>
+              {settings.themeMode === 'dark' ? '⚡ Obsidian Dark Mode' : '🌱 Nordic Light Mode'}
             </Text>
-            <Text style={styles.themeSubtext}>Warm daylight</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={[
-              styles.themeBtn,
-              settings.themeMode === 'dark' && styles.themeBtnActive,
-            ]}
-            onPress={() => {
+          </View>
+          <Switch
+            value={settings.themeMode === 'dark'}
+            onValueChange={(isDarkChecked: boolean) => {
               triggerSelectionHaptic(settings.enableHaptics);
-              onUpdateSettings({ themeMode: 'dark' });
+              onUpdateSettings({ themeMode: isDarkChecked ? 'dark' : 'light' });
             }}
-          >
-            <Text style={styles.themeEmoji}>⚡</Text>
-            <Text
-              style={[
-                styles.themeBtnText,
-                settings.themeMode === 'dark' && styles.themeBtnTextActive,
-              ]}
-            >
-              Obsidian Dark
-            </Text>
-            <Text style={styles.themeSubtext}>High contrast</Text>
-          </TouchableOpacity>
+            trackColor={{ false: theme.colors.surfaceMuted, true: theme.colors.primary }}
+          />
         </View>
       </View>
 
@@ -712,12 +682,12 @@ const getStyles = (theme: Theme, isDark: boolean) =>
       marginBottom: 12,
     },
     title: {
-      fontSize: 22,
+      fontSize: 24,
       fontWeight: '800',
       color: theme.colors.textPrimary,
     },
     subtitle: {
-      fontSize: 12,
+      fontSize: 13.5,
       color: theme.colors.textSecondary,
       marginTop: 2,
     },
@@ -736,7 +706,7 @@ const getStyles = (theme: Theme, isDark: boolean) =>
       alignItems: 'center',
     },
     highlightBadge: {
-      fontSize: 10,
+      fontSize: 11,
       fontWeight: 'bold',
       color: theme.colors.primary,
       backgroundColor: isDark ? 'rgba(56, 189, 248, 0.15)' : 'rgba(56, 189, 248, 0.1)',
@@ -745,7 +715,7 @@ const getStyles = (theme: Theme, isDark: boolean) =>
       borderRadius: theme.radius.full,
     },
     activeBadge: {
-      fontSize: 10,
+      fontSize: 11,
       fontWeight: 'bold',
       color: '#10B981',
       backgroundColor: 'rgba(16, 185, 129, 0.15)',
@@ -754,7 +724,7 @@ const getStyles = (theme: Theme, isDark: boolean) =>
       borderRadius: theme.radius.full,
     },
     offBadge: {
-      fontSize: 10,
+      fontSize: 11,
       fontWeight: '600',
       color: theme.colors.textMuted,
       backgroundColor: theme.colors.surfaceSecondary,
@@ -763,15 +733,15 @@ const getStyles = (theme: Theme, isDark: boolean) =>
       borderRadius: theme.radius.full,
     },
     cardTitle: {
-      fontSize: 14,
+      fontSize: 15,
       fontWeight: '700',
       color: theme.colors.textPrimary,
       marginBottom: 2,
     },
     cardSubtitle: {
-      fontSize: 11,
+      fontSize: 13,
       color: theme.colors.textMuted,
-      marginBottom: 10,
+      marginBottom: 8,
     },
     themeRow: {
       flexDirection: 'row',
@@ -797,7 +767,7 @@ const getStyles = (theme: Theme, isDark: boolean) =>
       marginBottom: 4,
     },
     themeBtnText: {
-      fontSize: 12,
+      fontSize: 13,
       fontWeight: '700',
       color: theme.colors.textSecondary,
     },
@@ -805,7 +775,7 @@ const getStyles = (theme: Theme, isDark: boolean) =>
       color: theme.colors.primary,
     },
     themeSubtext: {
-      fontSize: 10,
+      fontSize: 11,
       color: theme.colors.textMuted,
       marginTop: 2,
     },
@@ -816,7 +786,7 @@ const getStyles = (theme: Theme, isDark: boolean) =>
       marginBottom: 10,
     },
     miniFieldLabel: {
-      fontSize: 11,
+      fontSize: 12,
       fontWeight: '700',
       color: theme.colors.textSecondary,
     },
@@ -826,7 +796,7 @@ const getStyles = (theme: Theme, isDark: boolean) =>
       borderRadius: theme.radius.sm,
       paddingVertical: 7,
       paddingHorizontal: 10,
-      fontSize: 13,
+      fontSize: 14,
       color: theme.colors.textPrimary,
       borderWidth: 1,
       borderColor: theme.colors.borderSubtle,
@@ -856,7 +826,7 @@ const getStyles = (theme: Theme, isDark: boolean) =>
       alignItems: 'center',
     },
     previewVoiceBtnText: {
-      fontSize: 12,
+      fontSize: 13,
       fontWeight: '700',
       color: '#38BDF8',
     },
@@ -868,7 +838,7 @@ const getStyles = (theme: Theme, isDark: boolean) =>
       marginTop: 2,
     },
     setupLockBtnText: {
-      fontSize: 13,
+      fontSize: 14,
       fontWeight: '700',
       color: '#FFFFFF',
     },
@@ -887,7 +857,7 @@ const getStyles = (theme: Theme, isDark: boolean) =>
       borderColor: theme.colors.borderSubtle,
     },
     changeLockBtnText: {
-      fontSize: 12,
+      fontSize: 13,
       fontWeight: '600',
       color: theme.colors.textPrimary,
     },
@@ -901,7 +871,7 @@ const getStyles = (theme: Theme, isDark: boolean) =>
       borderColor: 'rgba(239, 68, 68, 0.25)',
     },
     removeLockBtnText: {
-      fontSize: 12,
+      fontSize: 13,
       fontWeight: '700',
       color: '#EF4444',
     },
@@ -930,7 +900,7 @@ const getStyles = (theme: Theme, isDark: boolean) =>
       borderColor: theme.colors.primary,
     },
     durationChipText: {
-      fontSize: 11,
+      fontSize: 12.5,
       fontWeight: '600',
       color: theme.colors.textSecondary,
     },
@@ -956,7 +926,7 @@ const getStyles = (theme: Theme, isDark: boolean) =>
       backgroundColor: isDark ? 'rgba(56, 189, 248, 0.12)' : 'rgba(56, 189, 248, 0.08)',
     },
     formatBtnText: {
-      fontSize: 12,
+      fontSize: 13,
       fontWeight: '600',
       color: theme.colors.textSecondary,
     },
@@ -967,7 +937,7 @@ const getStyles = (theme: Theme, isDark: boolean) =>
       flexDirection: 'row',
       justifyContent: 'space-between',
       alignItems: 'center',
-      paddingVertical: 8,
+      paddingVertical: 9,
       borderBottomWidth: 1,
       borderBottomColor: isDark ? 'rgba(255, 255, 255, 0.04)' : theme.colors.borderSubtle,
     },
@@ -976,14 +946,14 @@ const getStyles = (theme: Theme, isDark: boolean) =>
       marginRight: 10,
     },
     settingLabel: {
-      fontSize: 13,
+      fontSize: 14.5,
       fontWeight: '600',
       color: theme.colors.textPrimary,
     },
     settingDesc: {
-      fontSize: 11,
+      fontSize: 12.5,
       color: theme.colors.textMuted,
-      marginTop: 1,
+      marginTop: 2,
     },
     statsRow: {
       flexDirection: 'row',
@@ -999,15 +969,15 @@ const getStyles = (theme: Theme, isDark: boolean) =>
       alignItems: 'center',
     },
     statNum: {
-      fontSize: 16,
+      fontSize: 18,
       fontWeight: '800',
       color: theme.colors.primary,
       fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace',
     },
     statText: {
-      fontSize: 10,
+      fontSize: 11,
       color: theme.colors.textMuted,
-      marginTop: 1,
+      marginTop: 2,
     },
     noticeBox: {
       backgroundColor: 'rgba(16, 185, 129, 0.1)',
@@ -1017,7 +987,7 @@ const getStyles = (theme: Theme, isDark: boolean) =>
     },
     noticeText: {
       color: '#10B981',
-      fontSize: 11,
+      fontSize: 12,
       fontWeight: '600',
       textAlign: 'center',
     },
@@ -1029,11 +999,11 @@ const getStyles = (theme: Theme, isDark: boolean) =>
       borderWidth: 1,
       borderColor: theme.colors.primary,
       borderRadius: theme.radius.md,
-      paddingVertical: 10,
+      paddingVertical: 11,
       alignItems: 'center',
     },
     exportBtnText: {
-      fontSize: 12,
+      fontSize: 13,
       fontWeight: '700',
       color: theme.colors.primary,
     },
@@ -1042,11 +1012,11 @@ const getStyles = (theme: Theme, isDark: boolean) =>
       borderWidth: 1,
       borderColor: isDark ? 'rgba(255, 255, 255, 0.1)' : theme.colors.borderSubtle,
       borderRadius: theme.radius.md,
-      paddingVertical: 10,
+      paddingVertical: 11,
       alignItems: 'center',
     },
     restoreBtnText: {
-      fontSize: 12,
+      fontSize: 13,
       fontWeight: '600',
       color: theme.colors.textSecondary,
     },
@@ -1055,11 +1025,11 @@ const getStyles = (theme: Theme, isDark: boolean) =>
       borderWidth: 1,
       borderColor: 'rgba(239, 68, 68, 0.25)',
       borderRadius: theme.radius.md,
-      paddingVertical: 10,
+      paddingVertical: 11,
       alignItems: 'center',
     },
     resetBtnText: {
-      fontSize: 12,
+      fontSize: 13,
       fontWeight: '700',
       color: '#EF4444',
     },
@@ -1079,12 +1049,12 @@ const getStyles = (theme: Theme, isDark: boolean) =>
       backgroundColor: '#38BDF8',
     },
     aboutTitle: {
-      fontSize: 16,
+      fontSize: 17,
       fontWeight: '800',
       color: theme.colors.textPrimary,
     },
     aboutVersion: {
-      fontSize: 11,
+      fontSize: 12,
       color: theme.colors.textMuted,
       marginTop: 2,
     },

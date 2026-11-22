@@ -269,19 +269,19 @@ const getStyles = (theme: Theme, isDark: boolean) =>
       borderRadius: 3.5,
     },
     monospacedTimeText: {
-      fontSize: 11,
+      fontSize: 13,
       fontWeight: '600',
       color: isDark ? '#CBD5E1' : theme.colors.textSecondary,
       fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace',
     },
     goalBadge: {
       backgroundColor: isDark ? 'rgba(168, 85, 247, 0.2)' : '#F3E8FF',
-      paddingHorizontal: 5,
-      paddingVertical: 1,
+      paddingHorizontal: 6,
+      paddingVertical: 2,
       borderRadius: theme.radius.xs,
     },
     goalBadgeText: {
-      fontSize: 9,
+      fontSize: 11,
       fontWeight: '700',
       color: isDark ? '#C084FC' : '#7E22CE',
     },
@@ -292,8 +292,8 @@ const getStyles = (theme: Theme, isDark: boolean) =>
     badge: {
       flexDirection: 'row',
       alignItems: 'center',
-      paddingHorizontal: 7,
-      paddingVertical: 2,
+      paddingHorizontal: 8,
+      paddingVertical: 3,
       borderRadius: theme.radius.full,
     },
     badgeActive: {
@@ -312,14 +312,14 @@ const getStyles = (theme: Theme, isDark: boolean) =>
       backgroundColor: isDark ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.04)',
     },
     pulseDot: {
-      width: 5,
-      height: 5,
-      borderRadius: 2.5,
+      width: 6,
+      height: 6,
+      borderRadius: 3,
       backgroundColor: '#38BDF8',
       marginRight: 4,
     },
     badgeText: {
-      fontSize: 9,
+      fontSize: 11,
       fontWeight: '700',
     },
     badgeActiveText: {
@@ -341,32 +341,32 @@ const getStyles = (theme: Theme, isDark: boolean) =>
       marginBottom: 8,
     },
     title: {
-      fontSize: 15,
+      fontSize: 17,
       fontWeight: '700',
       color: theme.colors.textPrimary,
-      lineHeight: 20,
+      lineHeight: 22,
     },
     titleMuted: {
       color: theme.colors.textMuted,
       textDecorationLine: 'line-through',
     },
     description: {
-      fontSize: 12,
+      fontSize: 13.5,
       color: theme.colors.textSecondary,
       marginTop: 2,
-      lineHeight: 16,
+      lineHeight: 18,
     },
     missedHintText: {
-      fontSize: 11,
+      fontSize: 12,
       color: '#F59E0B',
       marginBottom: 8,
-      fontWeight: '500',
+      fontWeight: '600',
     },
     completedHintText: {
-      fontSize: 11,
+      fontSize: 12,
       color: '#10B981',
       marginBottom: 8,
-      fontWeight: '500',
+      fontWeight: '600',
     },
     detailsExpansion: {
       backgroundColor: theme.colors.surfaceSecondary,
@@ -376,7 +376,7 @@ const getStyles = (theme: Theme, isDark: boolean) =>
       gap: 3,
     },
     detailRowText: {
-      fontSize: 11,
+      fontSize: 12,
       color: theme.colors.textSecondary,
       fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace',
     },
@@ -386,7 +386,7 @@ const getStyles = (theme: Theme, isDark: boolean) =>
       gap: 8,
     },
     primaryActionBtn: {
-      paddingVertical: 8,
+      paddingVertical: 9,
       paddingHorizontal: 8,
       borderRadius: theme.radius.md,
       alignItems: 'center',
@@ -397,7 +397,7 @@ const getStyles = (theme: Theme, isDark: boolean) =>
       flex: 1.3,
     },
     completeBtnText: {
-      fontSize: 12,
+      fontSize: 13,
       fontWeight: '700',
       color: '#FFFFFF',
     },
@@ -408,7 +408,7 @@ const getStyles = (theme: Theme, isDark: boolean) =>
       flex: 1.3,
     },
     rescheduleBtnText: {
-      fontSize: 12,
+      fontSize: 13,
       fontWeight: '600',
       color: theme.colors.textPrimary,
     },
@@ -419,7 +419,7 @@ const getStyles = (theme: Theme, isDark: boolean) =>
       flex: 0.9,
     },
     skipBtnText: {
-      fontSize: 12,
+      fontSize: 13,
       fontWeight: '600',
       color: theme.colors.textSecondary,
     },
@@ -438,11 +438,11 @@ const getStyles = (theme: Theme, isDark: boolean) =>
       gap: 14,
     },
     utilityText: {
-      fontSize: 11,
+      fontSize: 12,
       color: theme.colors.textMuted,
       fontWeight: '600',
     },
     utilityDeleteText: {
-      fontSize: 11,
+      fontSize: 12,
     },
   });

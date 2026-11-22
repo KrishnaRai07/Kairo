@@ -137,7 +137,7 @@ const getStyles = (theme: Theme, isDark: boolean) =>
       fontSize: 15,
     },
     emptyStripTitle: {
-      fontSize: 12,
+      fontSize: 14,
       fontWeight: '700',
       color: theme.colors.textPrimary,
     },
@@ -148,7 +148,7 @@ const getStyles = (theme: Theme, isDark: boolean) =>
       borderRadius: theme.radius.sm,
     },
     emptyAddPillText: {
-      fontSize: 11,
+      fontSize: 12,
       fontWeight: '700',
       color: '#FFFFFF',
     },
@@ -164,7 +164,7 @@ const getStyles = (theme: Theme, isDark: boolean) =>
       marginBottom: 6,
     },
     sectionTitle: {
-      fontSize: 10,
+      fontSize: 12,
       fontWeight: '800',
       color: isDark ? '#C084FC' : '#7E22CE',
       letterSpacing: 0.6,
@@ -176,7 +176,7 @@ const getStyles = (theme: Theme, isDark: boolean) =>
       backgroundColor: isDark ? 'rgba(168, 85, 247, 0.2)' : '#F3E8FF',
     },
     addMiniBtnText: {
-      fontSize: 10,
+      fontSize: 11.5,
       fontWeight: '700',
       color: '#A855F7',
     },
@@ -200,14 +200,14 @@ const getStyles = (theme: Theme, isDark: boolean) =>
       marginRight: 8,
     },
     goalTitle: {
-      fontSize: 14,
+      fontSize: 16,
       fontWeight: '700',
       color: theme.colors.textPrimary,
     },
     goalTimeSubtitle: {
-      fontSize: 11,
+      fontSize: 13,
       color: theme.colors.textSecondary,
-      marginTop: 1,
+      marginTop: 2,
     },
     headerRight: {
       flexDirection: 'row',
@@ -216,20 +216,20 @@ const getStyles = (theme: Theme, isDark: boolean) =>
     },
     dayBadge: {
       backgroundColor: isDark ? 'rgba(168, 85, 247, 0.25)' : '#F3E8FF',
-      paddingHorizontal: 7,
-      paddingVertical: 2,
+      paddingHorizontal: 8,
+      paddingVertical: 3,
       borderRadius: theme.radius.full,
     },
     dayBadgeText: {
-      fontSize: 10,
+      fontSize: 11.5,
       fontWeight: '800',
       color: isDark ? '#C084FC' : '#7E22CE',
     },
     deleteBtn: {
-      padding: 2,
+      padding: 3,
     },
     deleteBtnText: {
-      fontSize: 11,
+      fontSize: 13,
     },
     progressContainer: {
       flexDirection: 'row',
@@ -238,7 +238,7 @@ const getStyles = (theme: Theme, isDark: boolean) =>
     },
     progressBarTrack: {
       flex: 1,
-      height: 5,
+      height: 6,
       borderRadius: 3,
       backgroundColor: isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.08)',
       overflow: 'hidden',
@@ -249,10 +249,10 @@ const getStyles = (theme: Theme, isDark: boolean) =>
       backgroundColor: '#9333EA',
     },
     progressPercentText: {
-      fontSize: 10,
+      fontSize: 12,
       fontWeight: '800',
       color: '#A855F7',
-      minWidth: 28,
+      minWidth: 32,
       textAlign: 'right',
     },
   });
