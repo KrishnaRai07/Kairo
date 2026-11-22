@@ -211,3 +211,43 @@ export interface FlowScoreMetrics {
   masteryLevel: FlowMasteryLevel;
 }
 
+export interface DailyFlowPoint {
+  dayNumber: number; // 1 to 31
+  dateStr: string; // YYYY-MM-DD
+  score: number; // 0 to 100
+  plannedTasks: number;
+  completedTasks: number;
+  hasActivity: boolean;
+  statusRating: 'peak' | 'steady' | 'building' | 'recharge' | 'empty';
+}
+
+export interface MonthlyFlowTrend {
+  year: number;
+  month: number; // 0 to 11
+  monthName: string; // e.g. "November 2026"
+  days: DailyFlowPoint[];
+  averageScore: number;
+  peakScore: number;
+  masteryDays: number; // count of days with score >= 80
+  activeDays: number;
+}
+
+export interface MonthlyFlowSummaryPoint {
+  monthIndex: number; // 0 to 11
+  monthLabel: string; // "Jan", "Feb", ...
+  avgScore: number;
+  peakScore: number;
+  activeDays: number;
+  hasActivity: boolean;
+}
+
+export interface YearlyFlowTrend {
+  year: number;
+  months: MonthlyFlowSummaryPoint[];
+  annualAverage: number;
+  bestMonth: string;
+  masteryMonths: number;
+  activeMonths: number;
+}
+
+

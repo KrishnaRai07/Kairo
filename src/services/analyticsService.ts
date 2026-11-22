@@ -10,6 +10,10 @@ import {
   HeatmapDay,
   FlowScoreMetrics,
   FlowMasteryLevel,
+  DailyFlowPoint,
+  MonthlyFlowTrend,
+  MonthlyFlowSummaryPoint,
+  YearlyFlowTrend,
 } from '../types/task';
 import { getWeekBoundaries, getMonthBoundaries, isSameDay } from '../utils/dateUtils';
 
@@ -338,8 +342,10 @@ export function computeFlowScoreAndMastery(
     }
   }
 
-  // 2. Resilience Score (30%)
-  const resMetrics = computeResilienceMetrics(tasks, historyEvents);
+  // 2. Resilience Score (30%) - Evaluated on tasks and disruptions up to current reference date
+  const tasksUpToDate = tasks.filter((t) => new Date(t.startTime) <= referenceDate);
+  const eventsUpToDate = historyEvents.filter((e) => new Date(e.timestamp) <= referenceDate);
+  const resMetrics = computeResilienceMetrics(tasksUpToDate, eventsUpToDate);
   const resilienceScore = resMetrics.resilienceScore;
 
   // 3. Consistency Score (20%)
@@ -525,5 +531,164 @@ export function computeFlowScoreAndMastery(
     masteryLevel,
   };
 }
+
+const MONTH_NAMES = [
+  'January',
+  'February',
+  'March',
+  'April',
+  'May',
+  'June',
+  'July',
+  'August',
+  'September',
+  'October',
+  'November',
+  'December',
+];
+
+const MONTH_SHORT = [
+  'Jan',
+  'Feb',
+  'Mar',
+  'Apr',
+  'May',
+  'Jun',
+  'Jul',
+  'Aug',
+  'Sep',
+  'Oct',
+  'Nov',
+  'Dec',
+];
+
+/**
+ * Computes date vs flow score for every day in a given month.
+ */
+export function computeMonthlyFlowTrend(
+  tasks: Task[],
+  historyEvents: TaskHistoryEvent[],
+  year: number,
+  monthIndex: number // 0 to 11
+): MonthlyFlowTrend {
+  // Days in month: day 0 of monthIndex + 1 gives last day of monthIndex
+  const totalDays = new Date(year, monthIndex + 1, 0).getDate();
+  const monthName = `${MONTH_NAMES[monthIndex]} ${year}`;
+
+  const days: DailyFlowPoint[] = [];
+  let scoreSum = 0;
+  let activeDays = 0;
+  let peakScore = 0;
+  let masteryDays = 0;
+
+  for (let day = 1; day <= totalDays; day++) {
+    const targetDate = new Date(year, monthIndex, day, 12, 0, 0);
+    const dateStr = `${year}-${String(monthIndex + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+
+    const dayTasks = tasks.filter((t) => {
+      const taskStart = new Date(t.startTime);
+      return (
+        taskStart.getFullYear() === year &&
+        taskStart.getMonth() === monthIndex &&
+        taskStart.getDate() === day
+      );
+    });
+
+    if (dayTasks.length > 0) {
+      activeDays++;
+      const metrics = computeFlowScoreAndMastery(tasks, historyEvents, targetDate);
+      const score = metrics.overallScore;
+      scoreSum += score;
+      if (score > peakScore) peakScore = score;
+      if (score >= 80) masteryDays++;
+
+      const completed = dayTasks.filter((t) => t.status === 'completed').length;
+
+      days.push({
+        dayNumber: day,
+        dateStr,
+        score,
+        plannedTasks: dayTasks.length,
+        completedTasks: completed,
+        hasActivity: true,
+        statusRating: metrics.statusRating,
+      });
+    } else {
+      days.push({
+        dayNumber: day,
+        dateStr,
+        score: 0,
+        plannedTasks: 0,
+        completedTasks: 0,
+        hasActivity: false,
+        statusRating: 'empty',
+      });
+    }
+  }
+
+  const averageScore = activeDays > 0 ? Math.round(scoreSum / activeDays) : 0;
+
+  return {
+    year,
+    month: monthIndex,
+    monthName,
+    days,
+    averageScore,
+    peakScore,
+    masteryDays,
+    activeDays,
+  };
+}
+
+/**
+ * Computes month vs average flow score for all 12 months in a given year.
+ */
+export function computeYearlyFlowTrend(
+  tasks: Task[],
+  historyEvents: TaskHistoryEvent[],
+  year: number
+): YearlyFlowTrend {
+  const months: MonthlyFlowSummaryPoint[] = [];
+  let totalScoreSum = 0;
+  let totalActiveMonths = 0;
+  let bestMonth = '';
+  let highestMonthlyAvg = 0;
+  let masteryMonths = 0;
+
+  for (let m = 0; m < 12; m++) {
+    const monthTrend = computeMonthlyFlowTrend(tasks, historyEvents, year, m);
+    if (monthTrend.activeDays > 0) {
+      totalActiveMonths++;
+      totalScoreSum += monthTrend.averageScore;
+      if (monthTrend.averageScore >= 80) masteryMonths++;
+
+      if (monthTrend.averageScore > highestMonthlyAvg) {
+        highestMonthlyAvg = monthTrend.averageScore;
+        bestMonth = `${MONTH_SHORT[m]} (${monthTrend.averageScore})`;
+      }
+    }
+
+    months.push({
+      monthIndex: m,
+      monthLabel: MONTH_SHORT[m],
+      avgScore: monthTrend.averageScore,
+      peakScore: monthTrend.peakScore,
+      activeDays: monthTrend.activeDays,
+      hasActivity: monthTrend.activeDays > 0,
+    });
+  }
+
+  const annualAverage = totalActiveMonths > 0 ? Math.round(totalScoreSum / totalActiveMonths) : 0;
+
+  return {
+    year,
+    months,
+    annualAverage,
+    bestMonth: bestMonth || 'None',
+    masteryMonths,
+    activeMonths: totalActiveMonths,
+  };
+}
+
 
 

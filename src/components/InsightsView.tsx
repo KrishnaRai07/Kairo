@@ -10,6 +10,7 @@ import {
 } from 'react-native';
 import {
   Task,
+  TaskHistoryEvent,
   WeeklyTrend,
   MonthlyTrend,
   GoalProgress,
@@ -31,6 +32,7 @@ import {
 import { useTheme } from '../theme/ThemeContext';
 import { Theme } from '../theme/theme';
 import { formatDate } from '../utils/dateUtils';
+import { FlowTrendsModal } from './FlowTrendsModal';
 
 interface Props {
   tasks: Task[];
@@ -45,6 +47,9 @@ export const InsightsView: React.FC<Props> = ({ tasks, selectedDate }) => {
 
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<InsightsTab>('recovery');
+  const [allTasks, setAllTasks] = useState<Task[]>([]);
+  const [historyEvents, setHistoryEvents] = useState<TaskHistoryEvent[]>([]);
+  const [showTrendsModal, setShowTrendsModal] = useState(false);
   const [weeklyTrend, setWeeklyTrend] = useState<WeeklyTrend | null>(null);
   const [monthlyTrend, setMonthlyTrend] = useState<MonthlyTrend | null>(null);
   const [goals, setGoals] = useState<GoalProgress[]>([]);
@@ -81,6 +86,8 @@ export const InsightsView: React.FC<Props> = ({ tasks, selectedDate }) => {
         const flow = computeFlowScoreAndMastery(fetchedAllTasks, events, selectedDate);
 
         if (isMounted) {
+          setAllTasks(fetchedAllTasks);
+          setHistoryEvents(events);
           setWeeklyTrend(weekly);
           setMonthlyTrend(monthly);
           setGoals(allGoals);
@@ -127,9 +134,13 @@ export const InsightsView: React.FC<Props> = ({ tasks, selectedDate }) => {
         <Text style={styles.subtitle}>Intentional reflection & execution momentum</Text>
       </View>
 
-      {/* 0. Flow Mastery & Overall Score Spotlight Hero */}
+      {/* 0. Flow Mastery & Overall Score Spotlight Hero (Clickable to view Trends) */}
       {flowScore && (
-        <View style={styles.flowHeroCard}>
+        <TouchableOpacity
+          style={styles.flowHeroCard}
+          onPress={() => setShowTrendsModal(true)}
+          activeOpacity={0.88}
+        >
           <View style={styles.flowHeroHeader}>
             <View style={styles.flowHeroHeaderLeft}>
               <View style={styles.levelBadgeRow}>
@@ -194,7 +205,13 @@ export const InsightsView: React.FC<Props> = ({ tasks, selectedDate }) => {
               <Text style={styles.pillarLabel}>Pacing</Text>
             </View>
           </View>
-        </View>
+
+          {/* Clickable Callout to View Trends */}
+          <View style={styles.flowTrendCtaRow}>
+            <Text style={styles.flowTrendCtaText}>📈 View Monthly & Yearly Flow Trends</Text>
+            <Text style={styles.flowTrendCtaArrow}>↗</Text>
+          </View>
+        </TouchableOpacity>
       )}
 
       {/* Clean 2-Way Tab Switcher */}
@@ -503,6 +520,16 @@ export const InsightsView: React.FC<Props> = ({ tasks, selectedDate }) => {
           ) : null}
         </>
       )}
+
+      {/* Flow Score Monthly & Yearly Dot-Line Graph Trends Modal */}
+      <FlowTrendsModal
+        visible={showTrendsModal}
+        onClose={() => setShowTrendsModal(false)}
+        tasks={allTasks.length > 0 ? allTasks : tasks}
+        historyEvents={historyEvents}
+        theme={theme}
+        isDark={isDark}
+      />
     </ScrollView>
   );
 };
@@ -657,6 +684,29 @@ const getStyles = (theme: Theme, isDark: boolean) =>
       fontSize: 9.5,
       color: theme.colors.textMuted,
       marginTop: 2,
+    },
+    flowTrendCtaRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      marginTop: 12,
+      paddingVertical: 7,
+      paddingHorizontal: 12,
+      borderRadius: theme.radius.full,
+      backgroundColor: isDark ? 'rgba(56, 189, 248, 0.12)' : 'rgba(2, 132, 199, 0.08)',
+      borderWidth: 1,
+      borderColor: isDark ? 'rgba(56, 189, 248, 0.3)' : 'rgba(2, 132, 199, 0.25)',
+      gap: 6,
+    },
+    flowTrendCtaText: {
+      fontSize: 12,
+      fontWeight: '700',
+      color: '#38BDF8',
+    },
+    flowTrendCtaArrow: {
+      fontSize: 12,
+      fontWeight: '800',
+      color: '#38BDF8',
     },
     tabBar: {
       flexDirection: 'row',
