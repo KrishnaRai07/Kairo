@@ -80,6 +80,10 @@ export const SettingsView: React.FC<Props> = ({
   const [bioAvailable, setBioAvailable] = useState(false);
   const [bioLabel, setBioLabel] = useState('Biometrics');
 
+  // Accordion / Dropdown States for Space-Saving UX
+  const [voiceExpanded, setVoiceExpanded] = useState(false);
+  const [scheduleExpanded, setScheduleExpanded] = useState(false);
+
   const loadStorageStats = async () => {
     try {
       const s = await TaskRepository.getStorageStatistics();
@@ -245,22 +249,48 @@ export const SettingsView: React.FC<Props> = ({
         </View>
       </View>
 
-      {/* 2. Voice Coach & Spoken Reminders */}
+      {/* 2. Voice Coach & Spoken Reminders (Dropdown Accordion) */}
       <View style={styles.card}>
         <View style={styles.rowBetween}>
-          <Text style={styles.cardTitle}>🎙️ Voice Coach</Text>
+          <TouchableOpacity
+            style={styles.accordionHeaderLeft}
+            onPress={() => {
+              triggerSelectionHaptic(settings.enableHaptics);
+              setVoiceExpanded(!voiceExpanded);
+            }}
+            activeOpacity={0.7}
+          >
+            <View style={styles.rowAlign}>
+              <Text style={styles.cardTitle}>🎙️ Voice Coach</Text>
+              <Text style={styles.dropdownChevron}>{voiceExpanded ? '▲' : '▼'}</Text>
+            </View>
+            <Text style={styles.cardSubtitleCompact} numberOfLines={1}>
+              {settings.enableVoiceAlerts ?? true
+                ? `${settings.voiceSalutation || 'Sir'} · ${
+                    VOICE_LANGUAGE_OPTIONS.find((l) => l.id === (settings.voiceLanguage || 'en-IN'))?.label || 'Hinglish'
+                  } · Speaks at start & 15m`
+                : 'Muted (tap switch to enable)'}
+            </Text>
+          </TouchableOpacity>
           <Switch
             value={settings.enableVoiceAlerts ?? true}
-            onValueChange={(val: boolean) => onUpdateSettings({ enableVoiceAlerts: val })}
+            onValueChange={(val: boolean) => {
+              triggerSelectionHaptic(settings.enableHaptics);
+              onUpdateSettings({ enableVoiceAlerts: val });
+              if (val && !voiceExpanded) {
+                setVoiceExpanded(true);
+              }
+            }}
             trackColor={{ false: theme.colors.surfaceMuted, true: theme.colors.primary }}
           />
         </View>
-        <Text style={styles.cardSubtitle}>
-          Speaks reminders 15 min before & at start when active or tapped
-        </Text>
 
-        {(settings.enableVoiceAlerts ?? true) && (
-          <>
+        {voiceExpanded && (
+          <View style={styles.accordionBody}>
+            <Text style={styles.cardSubtitle}>
+              Speaks reminders 15 min before & at start when active or tapped
+            </Text>
+
             <View style={styles.salutationRow}>
               <Text style={styles.miniFieldLabel}>Call me:</Text>
               <TextInput
@@ -273,6 +303,7 @@ export const SettingsView: React.FC<Props> = ({
               />
             </View>
 
+            <Text style={[styles.miniFieldLabel, { marginBottom: 6 }]}>Language & Accent</Text>
             <View style={styles.chipsRow}>
               {VOICE_LANGUAGE_OPTIONS.map((lang) => {
                 const active = (settings.voiceLanguage || 'en-IN') === lang.id;
@@ -300,7 +331,7 @@ export const SettingsView: React.FC<Props> = ({
             >
               <Text style={styles.previewVoiceBtnText}>🔊 Preview Voice Alert</Text>
             </TouchableOpacity>
-          </>
+          </View>
         )}
       </View>
 
@@ -487,91 +518,120 @@ export const SettingsView: React.FC<Props> = ({
         </View>
       </View>
 
-      {/* 5. Focus & Schedule Preferences */}
+      {/* 5. Focus & Schedule Preferences (Dropdown Accordion) */}
       <View style={styles.card}>
-        <View style={styles.rowBetween}>
-          <Text style={styles.cardTitle}>⏱️ Schedule Defaults</Text>
-          <Text style={styles.highlightBadge}>{settings.defaultDurationMinutes}m block</Text>
-        </View>
+        <TouchableOpacity
+          style={styles.accordionHeaderFull}
+          onPress={() => {
+            triggerSelectionHaptic(settings.enableHaptics);
+            setScheduleExpanded(!scheduleExpanded);
+          }}
+          activeOpacity={0.7}
+        >
+          <View style={styles.rowBetween}>
+            <View style={styles.accordionHeaderLeft}>
+              <View style={styles.rowAlign}>
+                <Text style={styles.cardTitle}>⏱️ Schedule Defaults</Text>
+                <Text style={styles.dropdownChevron}>{scheduleExpanded ? '▲' : '▼'}</Text>
+              </View>
+              <Text style={styles.cardSubtitleCompact} numberOfLines={1}>
+                {`${settings.defaultDurationMinutes}m block · Starts ${
+                  DAY_START_OPTIONS.find((o) => o.hour === settings.dayStartHour)?.label || '06:00 AM'
+                } · ${settings.timeFormat || '12h'}`}
+              </Text>
+            </View>
+            <Text style={styles.highlightBadge}>{settings.defaultDurationMinutes}m block</Text>
+          </View>
+        </TouchableOpacity>
 
-        <Text style={[styles.miniFieldLabel, { marginTop: 8, marginBottom: 6 }]}>Default Duration</Text>
-        <View style={styles.chipsRow}>
-          {DURATION_OPTIONS.map((mins) => {
-            const isSelected = settings.defaultDurationMinutes === mins;
-            return (
+        {scheduleExpanded && (
+          <View style={styles.accordionBody}>
+            <Text style={[styles.miniFieldLabel, { marginBottom: 6 }]}>Default Duration</Text>
+            <View style={styles.chipsRow}>
+              {DURATION_OPTIONS.map((mins) => {
+                const isSelected = settings.defaultDurationMinutes === mins;
+                return (
+                  <TouchableOpacity
+                    key={mins}
+                    style={[styles.durationChip, isSelected && styles.durationChipActive]}
+                    onPress={() => {
+                      triggerSelectionHaptic(settings.enableHaptics);
+                      onUpdateSettings({ defaultDurationMinutes: mins });
+                    }}
+                  >
+                    <Text style={[styles.durationChipText, isSelected && styles.durationChipTextActive]}>
+                      {mins >= 60 ? `${mins / 60}h` : `${mins}m`}
+                    </Text>
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
+
+            <Text style={[styles.miniFieldLabel, { marginTop: 12, marginBottom: 6 }]}>Day Starts At</Text>
+            <View style={styles.chipsRow}>
+              {DAY_START_OPTIONS.map((opt) => {
+                const isSelected = settings.dayStartHour === opt.hour;
+                return (
+                  <TouchableOpacity
+                    key={opt.hour}
+                    style={[styles.routineChip, isSelected && styles.durationChipActive]}
+                    onPress={() => {
+                      triggerSelectionHaptic(settings.enableHaptics);
+                      onUpdateSettings({ dayStartHour: opt.hour });
+                    }}
+                  >
+                    <Text style={[styles.durationChipText, isSelected && styles.durationChipTextActive]}>
+                      {opt.label}
+                    </Text>
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
+
+            <Text style={[styles.miniFieldLabel, { marginTop: 12, marginBottom: 6 }]}>Time Display</Text>
+            <View style={styles.formatRow}>
               <TouchableOpacity
-                key={mins}
-                style={[styles.durationChip, isSelected && styles.durationChipActive]}
+                style={[
+                  styles.formatBtn,
+                  settings.timeFormat === '12h' && styles.formatBtnActive,
+                ]}
                 onPress={() => {
                   triggerSelectionHaptic(settings.enableHaptics);
-                  onUpdateSettings({ defaultDurationMinutes: mins });
+                  onUpdateSettings({ timeFormat: '12h' });
                 }}
               >
-                <Text style={[styles.durationChipText, isSelected && styles.durationChipTextActive]}>
-                  {mins >= 60 ? `${mins / 60}h` : `${mins}m`}
+                <Text
+                  style={[
+                    styles.formatBtnText,
+                    settings.timeFormat === '12h' && styles.formatBtnTextActive,
+                  ]}
+                >
+                  12-Hour
                 </Text>
               </TouchableOpacity>
-            );
-          })}
-        </View>
 
-        <Text style={[styles.miniFieldLabel, { marginTop: 12, marginBottom: 6 }]}>Day Starts At</Text>
-        <View style={styles.chipsRow}>
-          {DAY_START_OPTIONS.map((opt) => {
-            const isSelected = settings.dayStartHour === opt.hour;
-            return (
               <TouchableOpacity
-                key={opt.hour}
-                style={[styles.routineChip, isSelected && styles.durationChipActive]}
+                style={[
+                  styles.formatBtn,
+                  settings.timeFormat === '24h' && styles.formatBtnActive,
+                ]}
                 onPress={() => {
                   triggerSelectionHaptic(settings.enableHaptics);
-                  onUpdateSettings({ dayStartHour: opt.hour });
+                  onUpdateSettings({ timeFormat: '24h' });
                 }}
               >
-                <Text style={[styles.durationChipText, isSelected && styles.durationChipTextActive]}>
-                  {opt.label}
+                <Text
+                  style={[
+                    styles.formatBtnText,
+                    settings.timeFormat === '24h' && styles.formatBtnTextActive,
+                  ]}
+                >
+                  24-Hour
                 </Text>
               </TouchableOpacity>
-            );
-          })}
-        </View>
-
-        <Text style={[styles.miniFieldLabel, { marginTop: 12, marginBottom: 6 }]}>Time Display</Text>
-        <View style={styles.formatRow}>
-          <TouchableOpacity
-            style={[
-              styles.formatBtn,
-              settings.timeFormat === '12h' && styles.formatBtnActive,
-            ]}
-            onPress={() => onUpdateSettings({ timeFormat: '12h' })}
-          >
-            <Text
-              style={[
-                styles.formatBtnText,
-                settings.timeFormat === '12h' && styles.formatBtnTextActive,
-              ]}
-            >
-              12-Hour
-            </Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={[
-              styles.formatBtn,
-              settings.timeFormat === '24h' && styles.formatBtnActive,
-            ]}
-            onPress={() => onUpdateSettings({ timeFormat: '24h' })}
-          >
-            <Text
-              style={[
-                styles.formatBtnText,
-                settings.timeFormat === '24h' && styles.formatBtnTextActive,
-              ]}
-            >
-              24-Hour
-            </Text>
-          </TouchableOpacity>
-        </View>
+            </View>
+          </View>
+        )}
       </View>
 
       {/* 6. Local Storage & Backup */}
@@ -741,6 +801,35 @@ const getStyles = (theme: Theme, isDark: boolean) =>
       flexDirection: 'row',
       justifyContent: 'space-between',
       alignItems: 'center',
+    },
+    rowAlign: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 6,
+    },
+    accordionHeaderFull: {
+      width: '100%',
+    },
+    accordionHeaderLeft: {
+      flex: 1,
+      paddingRight: 10,
+    },
+    dropdownChevron: {
+      fontSize: 12,
+      fontWeight: '700',
+      color: theme.colors.primary,
+      opacity: 0.85,
+    },
+    cardSubtitleCompact: {
+      fontSize: 12.5,
+      color: theme.colors.textMuted,
+      marginTop: 2,
+    },
+    accordionBody: {
+      marginTop: 12,
+      paddingTop: 12,
+      borderTopWidth: 1,
+      borderTopColor: isDark ? 'rgba(255, 255, 255, 0.08)' : theme.colors.borderSubtle,
     },
     highlightBadge: {
       fontSize: 11,
