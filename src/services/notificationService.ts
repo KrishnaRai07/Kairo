@@ -12,7 +12,6 @@ export const REMINDER_CHANNEL_ID = 'kairo-reminders';
 // Configure notification behavior when app is in foreground
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
-    shouldShowAlert: true,
     shouldPlaySound: true,
     shouldSetBadge: false,
     shouldShowBanner: true,
@@ -40,8 +39,13 @@ export async function setupNotificationChannels(): Promise<void> {
         lockscreenVisibility: AndroidNotificationVisibility.PUBLIC,
         bypassDnd: false,
       });
-    } catch (e) {
-      console.warn('Failed to configure Android notification channel:', e);
+    } catch (e: any) {
+      // In Expo Go sandbox, the custom native channel provider is omitted by Expo;
+      // standalone builds (APK / EAS preview / production) configure it natively.
+      const msg = e?.message || '';
+      if (!msg.includes('ExpoNotificationChannelManager') && !msg.includes('NullPointerException')) {
+        console.warn('Failed to configure Android notification channel:', e);
+      }
     }
   }
 }
