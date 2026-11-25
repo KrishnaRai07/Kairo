@@ -687,13 +687,21 @@ export const SettingsView: React.FC<Props> = ({
         </View>
       </View>
 
-      {/* About Box */}
+      {/* About & Copyright Footer */}
       <View style={styles.aboutCard}>
         <View style={styles.aboutHeaderRow}>
           <Text style={styles.aboutTitle}>Kairo</Text>
-          <View style={styles.kairoDot} />
+          <View style={styles.versionBadge}>
+            <Text style={styles.versionBadgeText}>v2.0</Text>
+          </View>
         </View>
-        <Text style={styles.aboutVersion}>v1.1.0 • Master your daily flow. Without the guilt.</Text>
+        <Text style={styles.aboutTagline}>Master your daily flow. Without the guilt.</Text>
+        <Text style={styles.copyrightText}>
+          All rights reserved by Krishna Innovations Ltd (KIL)
+        </Text>
+        <Text style={styles.madeWithLoveText}>
+          Engineered with calm precision
+        </Text>
       </View>
 
       {/* Security Setup Modal */}
@@ -1216,28 +1224,53 @@ const getStyles = (theme: Theme, isDark: boolean) =>
     },
     aboutCard: {
       alignItems: 'center',
-      paddingVertical: 14,
+      paddingTop: 16,
+      paddingBottom: 24,
+      gap: 3,
     },
     aboutHeaderRow: {
       flexDirection: 'row',
       alignItems: 'center',
-      gap: 6,
-    },
-    kairoDot: {
-      width: 6,
-      height: 6,
-      borderRadius: 3,
-      backgroundColor: '#38BDF8',
+      gap: 8,
+      marginBottom: 2,
     },
     aboutTitle: {
-      fontSize: 17,
+      fontSize: 18,
       fontWeight: '800',
       color: theme.colors.textPrimary,
+      letterSpacing: 0.5,
     },
-    aboutVersion: {
-      fontSize: 12,
+    versionBadge: {
+      paddingHorizontal: 8,
+      paddingVertical: 2,
+      borderRadius: theme.radius.full,
+      backgroundColor: isDark ? 'rgba(56, 189, 248, 0.15)' : 'rgba(2, 132, 199, 0.1)',
+      borderWidth: 1,
+      borderColor: isDark ? 'rgba(56, 189, 248, 0.35)' : 'rgba(2, 132, 199, 0.25)',
+    },
+    versionBadgeText: {
+      fontSize: 11,
+      fontWeight: '800',
+      color: theme.colors.primary,
+      fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace',
+    },
+    aboutTagline: {
+      fontSize: 12.5,
+      color: theme.colors.textSecondary,
+      textAlign: 'center',
+    },
+    copyrightText: {
+      fontSize: 11.5,
+      fontWeight: '600',
       color: theme.colors.textMuted,
       marginTop: 2,
+      textAlign: 'center',
+    },
+    madeWithLoveText: {
+      fontSize: 10.5,
+      color: isDark ? 'rgba(255, 255, 255, 0.3)' : 'rgba(0, 0, 0, 0.35)',
+      marginTop: 1,
+      textAlign: 'center',
     },
     modalOverlay: {
       flex: 1,

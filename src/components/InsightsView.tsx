@@ -371,10 +371,14 @@ export const InsightsView: React.FC<Props> = ({ tasks, selectedDate }) => {
             {/* 4x7 Squircle Heatmap Grid */}
             <View style={styles.heatmapGrid}>
               {heatmap.map((cell, idx) => {
-                let cellStyle = styles.heatCell0;
-                if (cell.level === 1) cellStyle = styles.heatCell1;
-                else if (cell.level === 2) cellStyle = styles.heatCell2;
-                else if (cell.level === 3) cellStyle = styles.heatCell3;
+                const cellStyle =
+                  cell.level === 3
+                    ? styles.heatCell3
+                    : cell.level === 2
+                    ? styles.heatCell2
+                    : cell.level === 1
+                    ? styles.heatCell1
+                    : styles.heatCell0;
 
                 return (
                   <View key={`${cell.date}_${idx}`} style={styles.heatCellWrapper}>
@@ -921,18 +925,24 @@ const getStyles = (theme: Theme, isDark: boolean) =>
       width: 28,
       height: 28,
       borderRadius: 7,
+      borderWidth: 1,
+      borderColor: isDark ? 'rgba(255, 255, 255, 0.12)' : 'rgba(0, 0, 0, 0.08)',
     },
     heatCell0: {
-      backgroundColor: isDark ? 'rgba(255, 255, 255, 0.06)' : 'rgba(0, 0, 0, 0.05)',
+      backgroundColor: isDark ? 'rgba(255, 255, 255, 0.04)' : 'rgba(0, 0, 0, 0.03)',
+      borderColor: isDark ? 'rgba(255, 255, 255, 0.12)' : 'rgba(0, 0, 0, 0.08)',
     },
     heatCell1: {
       backgroundColor: 'rgba(56, 189, 248, 0.35)',
+      borderColor: 'rgba(56, 189, 248, 0.5)',
     },
     heatCell2: {
       backgroundColor: '#38BDF8',
+      borderColor: '#38BDF8',
     },
     heatCell3: {
       backgroundColor: '#A855F7',
+      borderColor: '#A855F7',
     },
     heatmapLegend: {
       flexDirection: 'row',
